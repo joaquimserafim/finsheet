@@ -78,12 +78,12 @@ Proves the render surface **and** the publish path on low-risk ground.
 - [x] public API types exported from `src/index.ts`; typed sample P&L + balance sheet as a compile-time guard (`src/types.test.ts`)
 - **Done when:** types compile and are exported. ✅ (`typecheck` + `.d.ts` build + tests green)
 
-### Epic 2 — Formatting (pure functions)
-- [ ] `formatAccounting` (negatives in parens, thousands sep, `null` → placeholder)
-- [ ] scaling option (units / thousands / millions)
-- [ ] currency + percent variants
-- [ ] unit tests (0, negative, null, decimals, huge)
-- **Done when:** formatters fully covered, zero DOM.
+### Epic 2 — Formatting (pure functions) — ✅ done
+- [x] `formatAccounting` (negatives in parens, thousands sep, `null` → placeholder)
+- [x] scaling option (units / thousands / millions)
+- [x] currency + percent variants
+- [x] unit tests (0, negative, null, decimals, huge)
+- **Done when:** formatters fully covered, zero DOM. ✅ (23 tests green; `.d.ts` build clean)
 
 ### Epic 3 — Rendering (read-only)
 - [ ] `<Grid>` skeleton — `table-layout: fixed` + `<colgroup>`
