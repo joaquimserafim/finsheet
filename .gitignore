@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+
+# local progress tracker — not committed
+progress.md
+
+# misc
+*.log
+.DS_Store
+*.tsbuildinfo
