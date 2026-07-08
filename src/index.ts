@@ -2,7 +2,7 @@
  * columnar — a headless-leaning React grid for financial statements.
  *
  * Public API. Epic 1 lands the core data model (types only); Epic 2 adds the pure
- * formatting functions; the `<Grid>` component follows in Epic 3.
+ * formatting functions; Epic 3 adds the read-only `<Grid>` component.
  */
 export const VERSION = "0.0.0";
 
@@ -17,6 +17,8 @@ export {
 	formatCurrency,
 	formatPercent,
 } from "./format";
+export type { GridProps } from "./Grid";
+export { Grid } from "./Grid";
 export type {
 	Align,
 	CellValue,

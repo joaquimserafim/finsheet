@@ -1,0 +1,211 @@
+/*
+ * columnar — the single shipped stylesheet (Epic 3).
+ *
+ * Import once in your app:  import "columnar/styles.css"
+ * The component never imports this itself, so the JS stays side-effect-free and
+ * you control load order / SSR.
+ *
+ * Theming is the flat --cn-* token set below, scoped to .columnar at specificity
+ * 0 (via :where) so your own `.columnar { --cn-bg: … }` always wins. Light is the
+ * default; dark follows the OS unless [data-theme] on the .columnar element forces
+ * it. Renaming a --cn-* token is a breaking change.
+ */
+
+:where(.columnar) {
+	/* surface */
+	--cn-bg: #ffffff;
+	--cn-fg: #1a1a1a;
+	--cn-muted: #6b7280;
+	--cn-border: #d1d5db;
+	/* header band */
+	--cn-head-bg: #f3f4f6;
+	--cn-head-fg: #374151;
+	/* section header */
+	--cn-section-fg: #111827;
+	--cn-section-weight: 600;
+	/* subtotal (opaque bg so sticky cells never bleed; theme to tint) */
+	--cn-subtotal-bg: var(--cn-bg);
+	--cn-subtotal-fg: inherit;
+	--cn-subtotal-weight: 600;
+	/* total */
+	--cn-total-bg: var(--cn-bg);
+	--cn-total-fg: inherit;
+	--cn-total-weight: 700;
+	--cn-total-border-top: 3px double var(--cn-border);
+	/* metrics */
+	--cn-pad-x: 0.75rem;
+	--cn-pad-y: 0.375rem;
+	--cn-indent-step: 1rem;
+	--cn-spacer-h: 0.75rem;
+	--cn-label-w: 16rem;
+	--cn-max-block-size: 32rem;
+	--cn-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--cn-font-size: 0.875rem;
+	--cn-line-height: 1.4;
+}
+
+/* Dark — follow the OS unless [data-theme="light"] opts out. */
+@media (prefers-color-scheme: dark) {
+	:where(.columnar:not([data-theme="light"])) {
+		--cn-bg: #0f1115;
+		--cn-fg: #e5e7eb;
+		--cn-muted: #9ca3af;
+		--cn-border: #374151;
+		--cn-head-bg: #171a21;
+		--cn-head-fg: #cbd5e1;
+		--cn-section-fg: #f3f4f6;
+	}
+}
+
+/* Dark — forced regardless of OS. */
+:where(.columnar[data-theme="dark"]) {
+	--cn-bg: #0f1115;
+	--cn-fg: #e5e7eb;
+	--cn-muted: #9ca3af;
+	--cn-border: #374151;
+	--cn-head-bg: #171a21;
+	--cn-head-fg: #cbd5e1;
+	--cn-section-fg: #f3f4f6;
+}
+
+/* Light — forced regardless of OS (re-assert defaults). */
+:where(.columnar[data-theme="light"]) {
+	--cn-bg: #ffffff;
+	--cn-fg: #1a1a1a;
+	--cn-muted: #6b7280;
+	--cn-border: #d1d5db;
+	--cn-head-bg: #f3f4f6;
+	--cn-head-fg: #374151;
+	--cn-section-fg: #111827;
+}
+
+/* Scroll port: the SOLE overflow owner, so both sticky axes resolve against it. */
+.columnar {
+	overflow: auto;
+	max-block-size: var(--cn-max-block-size);
+	max-inline-size: 100%;
+	color: var(--cn-fg);
+	background: var(--cn-bg);
+	font-family: var(--cn-font);
+	font-size: var(--cn-font-size);
+	line-height: var(--cn-line-height);
+}
+
+.columnar-table {
+	table-layout: fixed;
+	min-inline-size: 100%;
+	/* separate + spacing:0 is MANDATORY: collapsed borders get left behind by
+	   sticky cells on scroll (the canonical sticky-table bug). */
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+.columnar-table caption {
+	padding: var(--cn-pad-y) var(--cn-pad-x);
+	color: var(--cn-muted);
+	text-align: left;
+}
+
+/* Cells: every cell carries an OPAQUE background so sticky cells never show
+   scrolled content through them. */
+.columnar-table th,
+.columnar-table td {
+	padding: var(--cn-pad-y) var(--cn-pad-x);
+	background: var(--cn-bg);
+	font-weight: 400;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Effective alignment, resolved once at render into data-align. */
+[data-align="left"] {
+	text-align: left;
+}
+[data-align="right"] {
+	text-align: right;
+}
+[data-align="center"] {
+	text-align: center;
+}
+
+/* Numeric columns: equal-width digits so figures and decimal points line up. */
+.is-num {
+	font-variant-numeric: tabular-nums;
+}
+
+/* Depth indentation — label cells only (columns[0], the row header). */
+.columnar-table th[scope="row"] {
+	padding-inline-start: calc(var(--cn-pad-x) + var(--cn-depth, 0) * var(--cn-indent-step));
+	font-weight: 400;
+}
+
+/* Header band (sticky top). */
+.columnar-table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: var(--cn-head-bg);
+	color: var(--cn-head-fg);
+	font-weight: 600;
+	box-shadow: inset 0 -1px 0 var(--cn-border);
+}
+
+/* Sticky-left column (the label). */
+.columnar-table .is-sticky {
+	position: sticky;
+	left: 0;
+	z-index: 1;
+	box-shadow: inset -1px 0 0 var(--cn-border);
+}
+
+/* Top-left corner: above both bands, and it needs BOTH seams — box-shadow is not
+   additive across matching rules, so the corner declares the pair explicitly. */
+.columnar-table thead th.is-sticky {
+	z-index: 3;
+	box-shadow:
+		inset -1px 0 0 var(--cn-border),
+		inset 0 -1px 0 var(--cn-border);
+}
+
+/* Section header: label + empty value region; distinguished by weight/colour. */
+.columnar-table tr[data-kind="section"] th[scope="row"] {
+	color: var(--cn-section-fg);
+	font-weight: var(--cn-section-weight);
+}
+
+/* Subtotal: a single accounting underline above + heavier weight. No per-cell
+   bottom borders anywhere, so this top rule can't double with a neighbour. */
+.columnar-table tr[data-kind="subtotal"] > * {
+	background: var(--cn-subtotal-bg);
+	color: var(--cn-subtotal-fg);
+	font-weight: var(--cn-subtotal-weight);
+	border-block-start: 1px solid var(--cn-border);
+}
+
+/* Total: heaviest weight + a grand-total double rule above. */
+.columnar-table tr[data-kind="total"] > * {
+	background: var(--cn-total-bg);
+	color: var(--cn-total-fg);
+	font-weight: var(--cn-total-weight);
+	border-block-start: var(--cn-total-border-top);
+}
+
+/* Pinned grand total (sticky bottom band). Its own double top rule is the footer
+   seam, so no extra shadow is needed here. */
+.columnar-table tfoot th,
+.columnar-table tfoot td {
+	position: sticky;
+	bottom: 0;
+	z-index: 2;
+}
+.columnar-table tfoot th.is-sticky,
+.columnar-table tfoot td.is-sticky {
+	z-index: 3;
+}
+
+/* Spacer: a themed empty gap between groups. */
+.columnar-table tr[data-kind="spacer"] td {
+	height: var(--cn-spacer-h);
+	padding: 0;
+}

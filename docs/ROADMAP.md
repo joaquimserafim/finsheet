@@ -85,14 +85,16 @@ Proves the render surface **and** the publish path on low-risk ground.
 - [x] unit tests (0, negative, null, decimals, huge)
 - **Done when:** formatters fully covered, zero DOM. ✅ (23 tests green; `.d.ts` build clean)
 
-### Epic 3 — Rendering (read-only)
-- [ ] `<Grid>` skeleton — `table-layout: fixed` + `<colgroup>`
-- [ ] sticky header (top) + sticky first column (left) + corner z-index
-- [ ] row renderer switching on `kind`; subtotal/total styling
-- [ ] `tabular-nums` + right-align numeric cells; grand total in sticky `<tfoot>`
-- [ ] `styles.css` with CSS variables (light/dark)
-- [ ] render tests (RTL): structure, sticky, formatted values
-- **Done when:** renders a real P&L read-only; header + first column stick; numbers align.
+### Epic 3 — Rendering (read-only) — ✅ done (design panel + adversarial verify)
+- [x] `<Grid>` skeleton — `table-layout: fixed` + `<colgroup>`
+- [x] sticky header (top) + sticky first column (left) + corner z-index (4-tier scale)
+- [x] row renderer switching on `kind` (memo'd `GridRow`, `never` guard); subtotal/total styling
+- [x] `tabular-nums` + right-align numeric cells; trailing grand total auto-pinned to sticky `<tfoot>`
+- [x] `styles.css` with `--cn-*` CSS variables (light default, dark via `prefers-color-scheme` + `[data-theme]`)
+- [x] render tests (RTL): structure, per-kind rendering, formatted values, hooks, tfoot pinning, a11y
+- **Done when:** renders a real P&L read-only; header + first column stick; numbers align. ✅ (48 tests;
+  Vite playground build green. NOTE: live-browser sticky/z-index/theming eyeball is a maintainer step —
+  happy-dom has no layout engine, so tests assert the DOM/CSS contract, not computed geometry.)
 
 ### Epic 4 — CI & manual v0.1.0 release
 - [ ] README (install, quickstart, API, theming) + `RELEASING.md` (manual publish steps)
