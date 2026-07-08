@@ -57,25 +57,26 @@ These are the decisions that keep us off the "abstraction tax" path. Revisit del
 
 Proves the render surface **and** the publish path on low-risk ground.
 
-### Epic 0 — Repo foundation & tooling
-- [ ] `package.json` metadata (description, `license: MIT`, `version: 0.0.0`, author, `repository`, keywords)
-- [ ] `engines.node: ">=24"` + `.nvmrc` (`24`) + `.npmrc` (`engine-strict=true`)
-- [ ] `exports` map (ESM-only: `import` + `types`, no `main`/`require`) + `files` + `sideEffects` (`["**/*.css"]`) + `peerDependencies` + `publishConfig`
-- [ ] `tsconfig.json` (strict, `moduleResolution: Bundler`, `jsx: react-jsx`, `target: ES2024`)
-- [ ] `biome.json` (tabs, width 4, recommended rules, organize imports)
-- [ ] `tsup.config.ts` (**esm only**, dts, external react/react-dom)
-- [ ] `vitest.config.ts` (happy-dom, globals, setup file)
-- [ ] husky: `prepare` script + `pre-commit` hook (`biome check --staged` + `tsc --noEmit`)
-- [ ] scripts: `build` / `test` / `lint` / `format` / `typecheck` / `prepare`
-- [ ] `.gitignore` (incl. `progress.md`), `LICENSE` (MIT), README skeleton, `playground/` Vite dev app
-- **Done when:** `pnpm build && pnpm test && pnpm lint && pnpm typecheck` all green on an empty stub, and a bad commit is blocked by the pre-commit hook.
+### Epic 0 — Repo foundation & tooling — ✅ done (`182c643`)
+- [x] `package.json` metadata (description, `license: MIT`, `version: 0.0.0`, `contributors`, `repository`, keywords)
+- [x] `engines.node: ">=24"` + `.nvmrc` (`24`) + `.npmrc` (`engine-strict=true`)
+- [x] `exports` map (ESM-only: `import` + `types`, no `main`/`require`) + `files` + `sideEffects` (`["**/*.css"]`) + `peerDependencies` + `publishConfig`
+- [x] `tsconfig.json` (strict, `moduleResolution: Bundler`, `jsx: react-jsx`, `target: ES2024`)
+- [x] `biome.json` (tabs, width 4, recommended rules, organize imports)
+- [x] `tsup.config.ts` (**esm only**, dts, external react/react-dom)
+- [x] `vitest.config.ts` (happy-dom, globals, setup file)
+- [x] husky: `prepare` script + `pre-commit` hook (`biome check --staged` + `tsc --noEmit`)
+- [x] scripts: `build` / `test` / `lint` / `format` / `typecheck` / `prepare`
+- [x] `.gitignore` (incl. `progress.md`), `LICENSE` (MIT), README skeleton, `playground/` Vite dev app
+- **Done when:** `pnpm build && pnpm test && pnpm lint && pnpm typecheck` all green on an empty stub, and a bad commit is blocked by the pre-commit hook. ✅
 
-### Epic 1 — Core data model
-- [ ] `Column` type (id, header, numeric, sticky, width, align)
-- [ ] `Row` discriminated union (`section` / `line` / `subtotal` / `total` / `spacer`)
-- [ ] `CellValue` type
-- [ ] public API types exported from `src/index.ts`
-- **Done when:** types compile and are exported.
+### Epic 1 — Core data model — ✅ done (design panel + adversarial verify)
+- [x] `Column` type (id, header, numeric, align, sticky, editable, width)
+- [x] `Row` discriminated union (`section` / `line` / `subtotal` / `total` / `spacer`) via a private base chain; `RowKind`
+- [x] `CellValue` / `CellValues`; `GridModel { readonly columns; readonly rows }`
+- [x] editability model (row-level + column-level `editable`, opt-out; subtotals/totals never editable)
+- [x] public API types exported from `src/index.ts`; typed sample P&L + balance sheet as a compile-time guard (`src/types.test.ts`)
+- **Done when:** types compile and are exported. ✅ (`typecheck` + `.d.ts` build + tests green)
 
 ### Epic 2 — Formatting (pure functions)
 - [ ] `formatAccounting` (negatives in parens, thousands sep, `null` → placeholder)
@@ -147,3 +148,21 @@ Proves the render surface **and** the publish path on low-risk ground.
 - **No `publint` / `@arethetypeswrong/cli`.** ESM-only makes the `exports` map trivial, and the
   Epic 4 install smoke test exercises the real packed tarball end-to-end — so package-shape and
   type-resolution are covered by actually installing it, not by a static linter.
+
+Data-model widenings surfaced by the Epic 1 design panel (all **non-breaking**, add when the
+consuming epic needs them — not speculatively now):
+
+- **Grouped / multi-level column headers** — `Column.header` is flat, so an actual/budget/variance
+  P&L can't band value columns under a period super-header. Add optional `group?: string` when the
+  Epic 3 renderer supports spanning `<thead>` cells.
+- **Text / note columns** — cells are numeric-only (`CellValue = number | null`), so a
+  published-format "Note" reference column isn't expressible. Add optional `note?: string` on rows,
+  or widen non-numeric columns, if needed later.
+- **Per-column format / unit hints** (percent vs currency, scale, precision) — deferred to Epic 2
+  formatters; add `format?` / `precision?` on `Column` then.
+- **Per-cell editability** — current rule is `line.editable && column.editable` (AND of two flags);
+  it can't express one line where `actual` is editable but `budget` isn't. Out of scope for authored
+  statements.
+- **Value/column key safety** — `values` is keyed by unconstrained `string`, so a typo'd column key
+  renders blank rather than erroring. A generic `GridModel<C>` could tie keys to declared column ids
+  but fights the minimal/ergonomic goal; prefer a dev-mode runtime validator instead.
