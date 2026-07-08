@@ -1,32 +1,81 @@
 {
-  "name": "columnar",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.10.0",
-      "onFail": "download"
-    }
-  },
-  "type": "module",
-  "engines": {
-    "node": ">=24"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.5.2",
-    "@types/react": "^19.2.17",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.10"
-  }
+	"name": "columnar",
+	"version": "0.0.0",
+	"description": "A headless-leaning React grid for financial statements — sticky headers, tabular numerics, subtotal/total rows, and three edit modes.",
+	"keywords": [
+		"react",
+		"grid",
+		"table",
+		"datagrid",
+		"finance",
+		"financial-statements",
+		"tabular"
+	],
+	"license": "MIT",
+	"contributors": [
+		"columnar contributors (https://github.com/joaquimserafim/columnar/graphs/contributors)"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+ssh://git@github.com/joaquimserafim/columnar.git"
+	},
+	"homepage": "https://github.com/joaquimserafim/columnar#readme",
+	"bugs": "https://github.com/joaquimserafim/columnar/issues",
+	"type": "module",
+	"sideEffects": [
+		"**/*.css"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=24"
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "vite",
+		"test": "vitest",
+		"test:run": "vitest run",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"typecheck": "tsc --noEmit",
+		"prepare": "husky"
+	},
+	"peerDependencies": {
+		"react": ">=18"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"devEngines": {
+		"packageManager": {
+			"name": "pnpm",
+			"version": "^11.10.0",
+			"onFail": "download"
+		}
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.2",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@types/react": "^19.2.17",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^6.0.3",
+		"happy-dom": "^20.10.6",
+		"husky": "^9.1.7",
+		"react": "^19.2.7",
+		"react-dom": "^19.2.7",
+		"tsup": "^8.5.1",
+		"typescript": "^6.0.3",
+		"vite": "^8.1.3",
+		"vitest": "^4.1.10"
+	}
 }
