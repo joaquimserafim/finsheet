@@ -102,9 +102,9 @@ Proves the render surface **and** the publish path on low-risk ground.
 - [x] CI **install smoke test**: `pnpm pack` → install the tarball into a fresh ESM app → `import` it at runtime + `tsc --noEmit` against it
 - [x] coverage: V8 provider, 100% threshold gate (`pnpm test:coverage`)
 - [x] release readiness: version `0.1.0` (package.json + `VERSION`), `prepublishOnly` build guard
-- [ ] manual publish: `pnpm build && pnpm publish --access public` — **run by the maintainer** (see `RELEASING.md`)
-- [ ] GitHub release: tag `v0.1.0` + `gh release create` — **run by the maintainer**
-- **Done when:** package installs + imports cleanly in a fresh app. ✅ (verified locally via the smoke test; publish is the maintainer's manual step)
+- [x] manual publish — **published as `finsheet@0.1.0`** (verified installable from npm: import + `styles.css` ship)
+- [ ] GitHub release: tag `v0.1.0` + `gh release create` — **run by the maintainer** (if not already)
+- **Done when:** package installs + imports cleanly in a fresh app. ✅ **Shipped — `finsheet@0.1.0` live on npm.**
 
 ---
 

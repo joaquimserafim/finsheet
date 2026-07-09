@@ -19,6 +19,7 @@ export {
 } from "./format";
 export type { GridProps } from "./Grid";
 export { Grid } from "./Grid";
+export { parseAccounting } from "./parse";
 export type {
 	Align,
 	CellValue,
