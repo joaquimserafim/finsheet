@@ -1,5 +1,5 @@
 /**
- * columnar — internal render helpers (Epic 3). Not part of the public API.
+ * finsheet — internal render helpers (Epic 3). Not part of the public API.
  *
  * These resolve column-derived presentation in ONE place so a header cell and its
  * column's body cells can never drift apart.
@@ -34,7 +34,7 @@ export function cellPresentation(
 
 /**
  * The `<col>` width for `table-layout: fixed`: a number is px, a string is used
- * verbatim. An unset LABEL column falls back to `--cn-label-w` via the `width`
+ * verbatim. An unset LABEL column falls back to `--fs-label-w` via the `width`
  * property — `min-width` is ignored on `<col>` under fixed layout, so the floor
  * that stops the label column collapsing to 0 must be a real width. Unset value
  * columns stay auto and absorb the container's slack.
@@ -43,5 +43,5 @@ export function colWidth(column: Column, isLabel: boolean): string | undefined {
 	if (column.width !== undefined) {
 		return typeof column.width === "number" ? `${column.width}px` : column.width;
 	}
-	return isLabel ? "var(--cn-label-w)" : undefined;
+	return isLabel ? "var(--fs-label-w)" : undefined;
 }

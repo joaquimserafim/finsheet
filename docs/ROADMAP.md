@@ -1,4 +1,4 @@
-# columnar — Roadmap
+# finsheet — Roadmap
 
 A headless-leaning React grid for **financial statements**: sticky headers, tabular
 numerics, subtotal/total rows, and three edit modes — without the row-model abstraction
@@ -20,7 +20,7 @@ These are the decisions that keep us off the "abstraction tax" path. Revisit del
 - **Plain CSS + CSS custom properties** for theming (light/dark). No Tailwind dependency, no
   CSS-in-JS runtime. Ship one stylesheet.
 - **ESM-only.** No CJS output. The Node 24 floor means `require(esm)` works, so CommonJS
-  consumers can still `require('columnar')` — this keeps the `exports` map trivial and removes
+  consumers can still `require('finsheet')` — this keeps the `exports` map trivial and removes
   the entire dual-format interop failure class.
 - **`react` / `react-dom` are peer deps.** Never bundled.
 
@@ -90,18 +90,21 @@ Proves the render surface **and** the publish path on low-risk ground.
 - [x] sticky header (top) + sticky first column (left) + corner z-index (4-tier scale)
 - [x] row renderer switching on `kind` (memo'd `GridRow`, `never` guard); subtotal/total styling
 - [x] `tabular-nums` + right-align numeric cells; trailing grand total auto-pinned to sticky `<tfoot>`
-- [x] `styles.css` with `--cn-*` CSS variables (light default, dark via `prefers-color-scheme` + `[data-theme]`)
+- [x] `styles.css` with `--fs-*` CSS variables (light default, dark via `prefers-color-scheme` + `[data-theme]`)
 - [x] render tests (RTL): structure, per-kind rendering, formatted values, hooks, tfoot pinning, a11y
 - **Done when:** renders a real P&L read-only; header + first column stick; numbers align. ✅ (48 tests;
   Vite playground build green. NOTE: live-browser sticky/z-index/theming eyeball is a maintainer step —
   happy-dom has no layout engine, so tests assert the DOM/CSS contract, not computed geometry.)
 
 ### Epic 4 — CI & manual v0.1.0 release
-- [ ] README (install, quickstart, API, theming) + `RELEASING.md` (manual publish steps)
-- [ ] GitHub Actions CI: `lint` / `typecheck` / `test` / `build` on Node 24
-- [ ] CI **install smoke test**: `pnpm pack` → install the tarball into an ESM fixture → `import` it at runtime + `tsc --noEmit` against it
-- [ ] manual publish: `pnpm build && pnpm publish --access public` (run by maintainer)
-- **Done when:** package installs + imports cleanly in a fresh app.
+- [x] README (install, quickstart, `<Grid>` props, formatters, theming) + `RELEASING.md` (manual publish + GitHub release)
+- [x] GitHub Actions CI: `lint` / `typecheck` / `test:coverage` / `build` on Node 24
+- [x] CI **install smoke test**: `pnpm pack` → install the tarball into a fresh ESM app → `import` it at runtime + `tsc --noEmit` against it
+- [x] coverage: V8 provider, 100% threshold gate (`pnpm test:coverage`)
+- [x] release readiness: version `0.1.0` (package.json + `VERSION`), `prepublishOnly` build guard
+- [ ] manual publish: `pnpm build && pnpm publish --access public` — **run by the maintainer** (see `RELEASING.md`)
+- [ ] GitHub release: tag `v0.1.0` + `gh release create` — **run by the maintainer**
+- **Done when:** package installs + imports cleanly in a fresh app. ✅ (verified locally via the smoke test; publish is the maintainer's manual step)
 
 ---
 

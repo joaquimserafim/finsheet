@@ -1,4 +1,4 @@
-import { Grid, type GridModel } from "columnar";
+import { Grid, type GridModel } from "finsheet";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "../src/styles.css";
@@ -124,7 +124,7 @@ if (!root) {
 createRoot(root).render(
 	<StrictMode>
 		<main style={{ fontFamily: "system-ui, sans-serif", padding: 24, maxWidth: 720 }}>
-			<h1>columnar playground</h1>
+			<h1>finsheet playground</h1>
 			<p>
 				Read-only P&amp;L — scroll to check the sticky header, sticky label column, and
 				pinned net-income footer.

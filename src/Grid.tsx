@@ -50,7 +50,7 @@ function trailingTotalIndex(rows: readonly Row[]): number {
  * (`Column.sticky: "left"`), per-`kind` row styling, and an optionally pinned
  * grand-total footer. Controlled: the caller owns `model`; the grid never mutates.
  *
- * Style it by importing the stylesheet once: `import "columnar/styles.css"`.
+ * Style it by importing the stylesheet once: `import "finsheet/styles.css"`.
  */
 export function Grid({
 	model,
@@ -99,9 +99,9 @@ export function Grid({
 	);
 
 	return (
-		<div className={className ? `columnar ${className}` : "columnar"} id={id}>
+		<div className={className ? `finsheet ${className}` : "finsheet"} id={id}>
 			<table
-				className="columnar-table"
+				className="finsheet-table"
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledBy}
 			>

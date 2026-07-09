@@ -1,6 +1,6 @@
 {
-	"name": "columnar",
-	"version": "0.0.0",
+	"name": "finsheet",
+	"version": "0.1.0",
 	"description": "A headless-leaning React grid for financial statements — sticky headers, tabular numerics, subtotal/total rows, and three edit modes.",
 	"keywords": [
 		"react",
@@ -13,14 +13,14 @@
 	],
 	"license": "MIT",
 	"contributors": [
-		"columnar contributors (https://github.com/joaquimserafim/columnar/graphs/contributors)"
+		"finsheet contributors (https://github.com/joaquimserafim/finsheet/graphs/contributors)"
 	],
 	"repository": {
 		"type": "git",
-		"url": "git+ssh://git@github.com/joaquimserafim/columnar.git"
+		"url": "git+ssh://git@github.com/joaquimserafim/finsheet.git"
 	},
-	"homepage": "https://github.com/joaquimserafim/columnar#readme",
-	"bugs": "https://github.com/joaquimserafim/columnar/issues",
+	"homepage": "https://github.com/joaquimserafim/finsheet#readme",
+	"bugs": "https://github.com/joaquimserafim/finsheet/issues",
 	"type": "module",
 	"sideEffects": [
 		"**/*.css"
@@ -44,11 +44,13 @@
 		"dev": "vite",
 		"test": "vitest",
 		"test:run": "vitest run",
+		"test:coverage": "vitest run --coverage",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",
 		"typecheck": "tsc --noEmit",
-		"prepare": "husky"
+		"prepare": "husky",
+		"prepublishOnly": "pnpm build"
 	},
 	"peerDependencies": {
 		"react": ">=18"
@@ -70,6 +72,7 @@
 		"@types/react": "^19.2.17",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.3",
+		"@vitest/coverage-v8": "^4.1.10",
 		"happy-dom": "^20.10.6",
 		"husky": "^9.1.7",
 		"react": "^19.2.7",

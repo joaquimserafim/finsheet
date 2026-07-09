@@ -1,5 +1,5 @@
 /**
- * columnar — number formatting (Epic 2).
+ * finsheet — number formatting (Epic 2).
  *
  * Pure functions: no DOM, no React. The `<Grid>` (Epic 3) formats each numeric
  * cell through these; consumers can also call them directly to pre-format values

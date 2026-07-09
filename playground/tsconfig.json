@@ -2,7 +2,7 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"paths": {
-			"columnar": ["../src/index.ts"]
+			"finsheet": ["../src/index.ts"]
 		}
 	},
 	"include": ["."]

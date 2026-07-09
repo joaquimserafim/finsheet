@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { Grid } from "./index";
 import type { GridModel } from "./types";
 
@@ -38,15 +38,15 @@ const pnl: GridModel = {
 
 function grid(model: GridModel) {
 	const { container } = render(<Grid model={model} />);
-	// biome-ignore lint/style/noNonNullAssertion: the Grid always renders a root .columnar div.
-	return container.querySelector<HTMLElement>(".columnar")!;
+	// biome-ignore lint/style/noNonNullAssertion: the Grid always renders a root .finsheet div.
+	return container.querySelector<HTMLElement>(".finsheet")!;
 }
 
 describe("structure", () => {
 	test("renders one scroll port wrapping a table with colgroup/thead/tbody", () => {
 		const root = grid(pnl);
-		expect(root.classList.contains("columnar")).toBe(true);
-		const table = root.querySelector("table.columnar-table");
+		expect(root.classList.contains("finsheet")).toBe(true);
+		const table = root.querySelector("table.finsheet-table");
 		expect(table).not.toBeNull();
 		expect(table?.querySelector("colgroup")?.querySelectorAll("col")).toHaveLength(4);
 		expect(table?.querySelector("thead")).not.toBeNull();
@@ -60,7 +60,7 @@ describe("structure", () => {
 		expect(cols[2]?.style.width).toBe(""); // unset value column stays auto
 	});
 
-	test("unset label column falls back to the --cn-label-w width token", () => {
+	test("unset label column falls back to the --fs-label-w width token", () => {
 		const cols = grid({
 			columns: [
 				{ id: "line", header: "", sticky: "left" },
@@ -68,7 +68,7 @@ describe("structure", () => {
 			],
 			rows: [{ kind: "line", label: "x", values: { v: 1 } }],
 		}).querySelectorAll("col");
-		expect(cols[0]?.style.width).toBe("var(--cn-label-w)");
+		expect(cols[0]?.style.width).toBe("var(--fs-label-w)");
 	});
 
 	test("header: a <th scope=col> per column; numeric header aligns right; corner is sticky", () => {
@@ -132,14 +132,14 @@ describe("formatting", () => {
 		const root = grid(pnl);
 		expect(root.textContent).toContain("1,000");
 		expect(root.textContent).toContain("(1,234)"); // negative total
-		const otherRow = [...root.querySelectorAll('tr[data-kind="line"]')].find((r) =>
+		const otherRow = Array.from(root.querySelectorAll('tr[data-kind="line"]')).find((r) =>
 			r.textContent?.startsWith("Other"),
 		);
 		expect(otherRow?.querySelector("td")?.textContent).toBe("0"); // 0, not blank
 	});
 
 	test("null and absent cells render the blank placeholder", () => {
-		const services = [...grid(pnl).querySelectorAll('tr[data-kind="line"]')].find((r) =>
+		const services = Array.from(grid(pnl).querySelectorAll('tr[data-kind="line"]')).find((r) =>
 			r.textContent?.startsWith("Services"),
 		);
 		const cells = services?.querySelectorAll("td");
@@ -183,14 +183,14 @@ describe("presentation hooks", () => {
 		expect(td?.getAttribute("data-align")).toBe("center");
 	});
 
-	test("depth sets --cn-depth on the label cell; unset -> 0", () => {
+	test("depth sets --fs-depth on the label cell; unset -> 0", () => {
 		const root = grid(pnl);
-		const product = [...root.querySelectorAll('tr[data-kind="line"]')].find((r) =>
+		const product = Array.from(root.querySelectorAll('tr[data-kind="line"]')).find((r) =>
 			r.textContent?.startsWith("Product"),
 		);
-		expect(product?.querySelector("th")?.style.getPropertyValue("--cn-depth")).toBe("1");
+		expect(product?.querySelector("th")?.style.getPropertyValue("--fs-depth")).toBe("1");
 		const section = root.querySelector<HTMLElement>('tr[data-kind="section"] th');
-		expect(section?.style.getPropertyValue("--cn-depth")).toBe("0"); // depth undefined -> 0
+		expect(section?.style.getPropertyValue("--fs-depth")).toBe("0"); // depth undefined -> 0
 	});
 
 	test("without Column.sticky the label column is NOT sticky", () => {
@@ -273,10 +273,32 @@ describe("accessibility & edge cases", () => {
 		expect(root.querySelector("tfoot")).toBeNull();
 	});
 
+	test("a labeled row with zero columns renders via the label fallback (no crash)", () => {
+		const root = grid({ columns: [], rows: [{ kind: "line", label: "Orphan", values: {} }] });
+		const th = root.querySelector('tr[data-kind="line"] th');
+		expect(th?.textContent).toBe("Orphan");
+		expect(th?.getAttribute("data-align")).toBe("left"); // labelColumn undefined -> left
+	});
+
 	test("className is appended to the root, not replaced", () => {
 		const { container } = render(<Grid model={pnl} className="my-grid" />);
-		const root = container.querySelector(".columnar");
-		expect(root?.classList.contains("columnar")).toBe(true);
+		const root = container.querySelector(".finsheet");
+		expect(root?.classList.contains("finsheet")).toBe(true);
 		expect(root?.classList.contains("my-grid")).toBe(true);
+	});
+});
+
+describe("row-kind exhaustiveness guard", () => {
+	test("an unknown row kind trips the never guard — fails loud, never renders wrong data", () => {
+		// Only reachable by casting past the discriminated union. The guard exists so a
+		// future unhandled kind can't silently render garbage: GridRow returns the raw
+		// row, which React refuses to render, so the grid throws instead of misreporting.
+		const bad = {
+			columns: pnl.columns,
+			rows: [{ kind: "mystery", label: "?", values: {} }],
+		} as unknown as GridModel;
+		const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+		expect(() => render(<Grid model={bad} />)).toThrow();
+		spy.mockRestore();
 	});
 });

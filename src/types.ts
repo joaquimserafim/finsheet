@@ -1,5 +1,5 @@
 /**
- * columnar — core data model (Epic 1).
+ * finsheet — core data model (Epic 1).
  *
  * Types only: no runtime, no React. The `<Grid>` (Epic 3) renders a
  * {@link GridModel} by `switch`-ing on {@link Row.kind}; the editor (Epics 5–6)

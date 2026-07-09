@@ -13,7 +13,7 @@ interface GridRowProps {
 
 /**
  * The label `<th scope="row">` in the sticky-left column. Shared by every labeled
- * row kind so the label always pins (and indents) identically. `--cn-depth` is
+ * row kind so the label always pins (and indents) identically. `--fs-depth` is
  * always emitted (`depth ?? 0`) so the CSS `calc()` and the render tests have a
  * stable hook to read.
  */
@@ -31,7 +31,7 @@ function labelCell(
 			scope="row"
 			className={className}
 			data-align={align}
-			style={{ "--cn-depth": depth ?? 0 } as CSSProperties}
+			style={{ "--fs-depth": depth ?? 0 } as CSSProperties}
 		>
 			{label}
 		</th>

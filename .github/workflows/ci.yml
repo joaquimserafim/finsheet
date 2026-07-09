@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# husky's `prepare` hook is dev-only; skip it in CI.
+env:
+  HUSKY: "0"
+
+jobs:
+  check:
+    name: lint · typecheck · test · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:coverage
+      - run: pnpm build
+
+  smoke:
+    name: install smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Pack the tarball
+        run: pnpm pack --pack-destination "$RUNNER_TEMP"
+      - name: Import + typecheck from a fresh ESM app
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/smoke-app"
+          mkdir -p "$APP" && cd "$APP"
+          TARBALL="$(ls "$RUNNER_TEMP"/finsheet-*.tgz)"
+
+          npm init -y >/dev/null
+          npm pkg set type=module >/dev/null
+          npm install --no-audit --no-fund \
+            "$TARBALL" react@19 react-dom@19 typescript@5 @types/react@19 @types/react-dom@19
+
+          # (1) Runtime: the ESM entry loads (react peer resolves) and exports are present.
+          cat > smoke.mjs <<'EOF'
+          import assert from "node:assert/strict"
+          import { Grid, VERSION, formatAccounting } from "finsheet"
+          assert.equal(typeof Grid, "function")
+          assert.equal(formatAccounting(1234.5), "1,235")
+          assert.ok(VERSION)
+          console.log("runtime import OK — finsheet", VERSION)
+          EOF
+          node smoke.mjs
+
+          # (2) Types: the .d.ts + exports map resolve under a consumer tsconfig.
+          cat > smoke.ts <<'EOF'
+          import { Grid, type GridModel, type GridProps, formatAccounting } from "finsheet"
+          const model: GridModel = { columns: [{ id: "l", header: "" }], rows: [] }
+          const props: GridProps = { model }
+          void Grid
+          void props
+          void formatAccounting(1)
+          EOF
+          cat > tsconfig.json <<'EOF'
+          {
+            "compilerOptions": {
+              "module": "nodenext",
+              "moduleResolution": "nodenext",
+              "target": "es2022",
+              "jsx": "react-jsx",
+              "strict": true,
+              "noEmit": true,
+              "skipLibCheck": true
+            },
+            "include": ["smoke.ts"]
+          }
+          EOF
+          npx --yes tsc --noEmit
+          echo "types resolve OK"

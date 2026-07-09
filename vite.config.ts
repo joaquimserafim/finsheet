@@ -6,7 +6,7 @@ export default defineConfig({
 	plugins: [react()],
 	resolve: {
 		alias: {
-			columnar: new URL("./src/index.ts", import.meta.url).pathname,
+			finsheet: new URL("./src/index.ts", import.meta.url).pathname,
 		},
 	},
 });
