@@ -27,11 +27,12 @@
 	--fs-subtotal-bg: var(--fs-bg);
 	--fs-subtotal-fg: inherit;
 	--fs-subtotal-weight: 600;
-	/* total */
+	/* total — grand total: single rule above + a double "bottom line" below */
 	--fs-total-bg: var(--fs-bg);
 	--fs-total-fg: inherit;
 	--fs-total-weight: 700;
-	--fs-total-border-top: 3px double var(--fs-border);
+	--fs-total-border-top: 1px solid var(--fs-border);
+	--fs-total-border-bottom: 3px double var(--fs-border);
 	/* metrics */
 	--fs-pad-x: 0.75rem;
 	--fs-pad-y: 0.375rem;
@@ -183,12 +184,14 @@
 	border-block-start: 1px solid var(--fs-border);
 }
 
-/* Total: heaviest weight + a grand-total double rule above. */
+/* Total: heaviest weight + the classic grand-total treatment — a single rule
+   above and a double "bottom line" underline below. */
 .finsheet-table tr[data-kind="total"] > * {
 	background: var(--fs-total-bg);
 	color: var(--fs-total-fg);
 	font-weight: var(--fs-total-weight);
 	border-block-start: var(--fs-total-border-top);
+	border-block-end: var(--fs-total-border-bottom);
 }
 
 /* Pinned grand total (sticky bottom band). Its own double top rule is the footer

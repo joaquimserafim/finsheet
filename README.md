@@ -113,7 +113,7 @@ always win:
 ```css
 .finsheet {
 	--fs-bg: #fbfbfa;
-	--fs-total-border-top: 2px solid var(--fs-border);
+	--fs-total-border-bottom: 2px solid var(--fs-border); /* the grand-total underline */
 	--fs-max-block-size: 24rem; /* the scroll height that makes sticky work */
 }
 ```
