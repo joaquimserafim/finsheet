@@ -123,13 +123,16 @@ Proves the render surface **and** the publish path on low-risk ground.
 - *Remaining to close Epic 5:* the `@vitest/browser` focus/blur/selection suite (CI-only; covers the one browser-only blur branch + real-focus fidelity).
 
 ### Epic 6 — Bulk mode (`bulk`) — "the spreadsheet"
-*The spreadsheet-in-the-browser surface: range editing + Excel/xlsx interop (the clipboard is TSV).*
-- [ ] range-selection model (anchor + focus, shift/drag)
-- [ ] clipboard **paste** (parse TSV into the range) + **copy** (range → TSV, so figures round-trip to/from Excel)
-- [ ] fill-down / fill-right
-- [ ] respect editable guard across a range
-- [ ] interaction tests
-- **Done when:** paste a block from a spreadsheet and fill-down work against editable cells only; copy round-trips.
+*The spreadsheet-in-the-browser surface: range editing + Excel/xlsx interop (the clipboard is TSV).
+Full design + resolved founder gates in [docs/epics/epic-6.md](epics/epic-6.md).*
+- [ ] range-selection model (anchor + focus, shift/drag, `Cmd/Ctrl+A` select-all)
+- [ ] clipboard **paste** (positional TSV, atomic) + **copy** (range → TSV, round-trips to/from Excel) + **cut** (copy+clear)
+- [ ] fill-down / fill-right (`Cmd/Ctrl+D` / `Cmd/Ctrl+R`, verbatim — no series inference)
+- [ ] range-clear (Delete/Backspace over a selection)
+- [ ] respect the editable guard across a range (skip + **report** non-editable targets)
+- [ ] `onBulkEdit` one-swap contract (`BulkEdit`: `edits` + `rejected` + `skipped`)
+- [ ] interaction tests (happy-dom RTL + `@vitest/browser`)
+- **Done when:** paste a block from a spreadsheet + fill-down write **editable cells only**; copy round-trips; non-editable targets skipped + reported; one `onBulkEdit` → one model swap → one undo.
 
 ### Epic 7 — Performance hardening
 - [ ] memo boundaries (Row / Cell) + stable callbacks
