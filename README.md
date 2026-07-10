@@ -92,6 +92,7 @@ label. See [src/types.ts](src/types.ts) for the full model.
 | `mode` | `"view" \| "edit"` | `"view"` | `"edit"` turns numeric `line` cells into an editing surface (pair with `onEdit`). |
 | `onEdit` | `(change: CellEdit) => void` | — | Fires on each committed edit. Apply it and pass a fresh `model` back. |
 | `stickyFooter` | `boolean` | `true` | Pin the trailing `total` to a sticky footer. `false` → inline, no footer. |
+| `theme` | `"light" \| "dark"` | — | Force the color theme (stamps `data-theme`). Omit to follow the OS. |
 | `caption` | `ReactNode` | — | Rendered as `<caption>`; supplies the table's accessible name. |
 | `className` / `id` | `string` | — | Applied to the scroll container. |
 | `aria-label` / `aria-labelledby` | `string` | — | Applied to the `<table>` when there's no caption. |
@@ -178,9 +179,10 @@ always win:
 }
 ```
 
-Light is the default; **dark follows the OS** (`prefers-color-scheme`) unless you force it with
-`data-theme="light" | "dark"` on the `.finsheet` element. Full token list at the top of
-[src/styles.css](src/styles.css).
+Light is the default; **dark follows the OS** (`prefers-color-scheme`). To force a theme regardless
+of the OS, pass the `theme` prop — `<Grid theme="dark" />` — which stamps `data-theme` on the
+`.finsheet` element. (Set `color-scheme` on your own page so the surrounding chrome matches.) Full
+token list at the top of [src/styles.css](src/styles.css).
 
 ## Notes & limitations
 

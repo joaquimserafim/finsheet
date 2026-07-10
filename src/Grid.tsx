@@ -34,6 +34,11 @@ export interface GridProps {
 	readonly onEdit?: (change: CellEdit) => void;
 	/** Rendered as a `<caption>`; supplies the table's accessible name. */
 	readonly caption?: ReactNode;
+	/**
+	 * Force the color theme by stamping `data-theme` on the `.finsheet` element.
+	 * Omit to follow the OS (`prefers-color-scheme`); `"light"` / `"dark"` override it.
+	 */
+	readonly theme?: "light" | "dark";
 	readonly className?: string;
 	readonly id?: string;
 	readonly "aria-label"?: string;
@@ -71,6 +76,7 @@ export function Grid({
 	mode = "view",
 	onEdit,
 	caption,
+	theme,
 	className,
 	id,
 	"aria-label": ariaLabel,
@@ -123,6 +129,7 @@ export function Grid({
 		<div
 			className={className ? `finsheet ${className}` : "finsheet"}
 			id={id}
+			data-theme={theme}
 			onKeyDown={editing?.onKeyDown}
 			onClick={editing?.onClick}
 			onDoubleClick={editing?.onDoubleClick}

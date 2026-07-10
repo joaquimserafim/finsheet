@@ -1,7 +1,9 @@
 import { type CellEdit, Grid, type GridModel } from "finsheet";
-import { StrictMode, useState } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../src/styles.css";
+
+type Theme = "auto" | "light" | "dark";
 
 /** A multi-period P&L: wide enough to scroll horizontally (sticky label column)
  *  and tall enough to scroll vertically (sticky header + pinned net-income footer). */
@@ -121,6 +123,13 @@ const pnl: GridModel = {
 function Playground() {
 	const [model, setModel] = useState(pnl);
 	const [last, setLast] = useState<CellEdit | null>(null);
+	const [theme, setTheme] = useState<Theme>("auto");
+
+	// Keep the whole page's light/dark in step with the toggle (auto = follow the OS),
+	// so the grid never sits as a lone dark box on a light page (or vice-versa).
+	useEffect(() => {
+		document.documentElement.style.colorScheme = theme === "auto" ? "light dark" : theme;
+	}, [theme]);
 
 	const onEdit = (change: CellEdit) => {
 		setLast(change);
@@ -136,7 +145,31 @@ function Playground() {
 
 	return (
 		<main style={{ fontFamily: "system-ui, sans-serif", padding: 24, maxWidth: 760 }}>
-			<h1>finsheet playground</h1>
+			<div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 8 }}>
+				<h1 style={{ margin: 0 }}>finsheet playground</h1>
+				<div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+					{(["auto", "light", "dark"] as const).map((t) => (
+						<button
+							key={t}
+							type="button"
+							onClick={() => setTheme(t)}
+							aria-pressed={theme === t}
+							style={{
+								padding: "4px 10px",
+								fontSize: 13,
+								borderRadius: 6,
+								border: "1px solid #8884",
+								cursor: "pointer",
+								color: "inherit",
+								background: theme === t ? "#8883" : "transparent",
+								fontWeight: theme === t ? 600 : 400,
+							}}
+						>
+							{t}
+						</button>
+					))}
+				</div>
+			</div>
 			<p>
 				Edit mode — click or arrow to a numeric line cell, type to replace (or Enter/F2 to
 				edit in place), <kbd>Enter</kbd>/<kbd>Tab</kbd> to commit, <kbd>Esc</kbd> to cancel,
@@ -146,6 +179,7 @@ function Playground() {
 				model={model}
 				mode="edit"
 				onEdit={onEdit}
+				theme={theme === "auto" ? undefined : theme}
 				caption="Consolidated income statement (in thousands)"
 			/>
 			<p style={{ color: "#6b7280", fontVariantNumeric: "tabular-nums" }}>

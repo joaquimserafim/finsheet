@@ -286,6 +286,20 @@ describe("accessibility & edge cases", () => {
 		expect(root?.classList.contains("finsheet")).toBe(true);
 		expect(root?.classList.contains("my-grid")).toBe(true);
 	});
+
+	test("theme forces data-theme on the root; omitted follows the OS (no attribute)", () => {
+		expect(grid(pnl).getAttribute("data-theme")).toBe(null); // omitted → follows prefers-color-scheme
+		expect(
+			render(<Grid model={pnl} theme="dark" />)
+				.container.querySelector(".finsheet")
+				?.getAttribute("data-theme"),
+		).toBe("dark");
+		expect(
+			render(<Grid model={pnl} theme="light" />)
+				.container.querySelector(".finsheet")
+				?.getAttribute("data-theme"),
+		).toBe("light");
+	});
 });
 
 describe("row-kind exhaustiveness guard", () => {
