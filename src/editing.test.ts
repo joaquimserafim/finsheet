@@ -3,9 +3,12 @@ import {
 	buildEditableList,
 	classifyKey,
 	coordKey,
+	ignoreDuringComposition,
 	isCellEditable,
+	modifierHeld,
 	nextEditable,
 	reconcileActive,
+	sameCoord,
 } from "./editing";
 import type { Column, GridModel, Row } from "./types";
 
@@ -161,5 +164,36 @@ describe("reconcileActive", () => {
 	});
 	test("empty list → null", () => {
 		expect(reconcileActive([], { row: 1, col: 1 })).toBe(null);
+	});
+});
+
+describe("sameCoord", () => {
+	test("null combinations", () => {
+		expect(sameCoord(null, null)).toBe(true);
+		expect(sameCoord(null, { row: 1, col: 1 })).toBe(false);
+		expect(sameCoord({ row: 1, col: 1 }, null)).toBe(false);
+	});
+	test("two coordinates: equal, differing row, differing col", () => {
+		expect(sameCoord({ row: 1, col: 2 }, { row: 1, col: 2 })).toBe(true);
+		expect(sameCoord({ row: 1, col: 2 }, { row: 3, col: 2 })).toBe(false);
+		expect(sameCoord({ row: 1, col: 2 }, { row: 1, col: 5 })).toBe(false);
+	});
+});
+
+describe("ignoreDuringComposition", () => {
+	test("only Enter / Tab, and only while composing", () => {
+		expect(ignoreDuringComposition("Enter", true)).toBe(true);
+		expect(ignoreDuringComposition("Tab", true)).toBe(true);
+		expect(ignoreDuringComposition("a", true)).toBe(false); // composing, but not a commit key
+		expect(ignoreDuringComposition("Enter", false)).toBe(false); // not composing
+	});
+});
+
+describe("modifierHeld", () => {
+	test("true when any of ctrl / meta / alt is held", () => {
+		expect(modifierHeld(false, false, false)).toBe(false);
+		expect(modifierHeld(true, false, false)).toBe(true);
+		expect(modifierHeld(false, true, false)).toBe(true);
+		expect(modifierHeld(false, false, true)).toBe(true);
 	});
 });

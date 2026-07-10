@@ -2,6 +2,11 @@
 
 [![CI](https://github.com/joaquimserafim/finsheet/actions/workflows/ci.yml/badge.svg)](https://github.com/joaquimserafim/finsheet/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/finsheet.svg)](https://www.npmjs.com/package/finsheet)
+[![minzipped](https://img.shields.io/bundlephobia/minzip/finsheet)](https://bundlephobia.com/package/finsheet)
+[![types](https://img.shields.io/npm/types/finsheet.svg)](https://www.npmjs.com/package/finsheet)
+[![module: ESM only](https://img.shields.io/badge/module-ESM--only-blue)](https://nodejs.org/api/esm.html)
+[![node](https://img.shields.io/node/v/finsheet.svg)](https://nodejs.org)
+[![license: MIT](https://img.shields.io/npm/l/finsheet.svg)](LICENSE)
 
 A headless-leaning React grid for **financial statements** — sticky headers, tabular numerics,
 subtotal/total rows, and (soon) three edit modes — without the row-model abstraction tax of a

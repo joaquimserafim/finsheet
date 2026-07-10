@@ -1,14 +1,21 @@
 import { type CSSProperties, memo } from "react";
+import { EditableCell } from "./EditableCell";
+import { isCellEditable } from "./editing";
 import { GridCell } from "./GridCell";
 import { cellPresentation } from "./internal";
 import type { CellValue, Column, Row } from "./types";
+import type { GridEditing } from "./useGridEditing";
 
 interface GridRowProps {
 	row: Row;
+	/** Index of this row in `model.rows` — the row half of an edit coordinate. */
+	rowIndex: number;
 	columns: readonly Column[];
 	/** Whether the label column (columns[0]) pins to the left. Resolved once by Grid. */
 	stickyLeft: boolean;
 	formatValue: (value: CellValue | undefined) => string;
+	/** The editing controller in `edit` mode, or `null` in `view` mode. */
+	editing: GridEditing | null;
 }
 
 /**
@@ -39,11 +46,13 @@ function labelCell(
 }
 
 /**
- * One `<tr>` per row, `React.memo`-wrapped (the Epic 7 row-granularity seam). The
+ * One `<tr>` per row, `React.memo`-wrapped (the row-granularity seam). The
  * exhaustive `switch (row.kind)` closes with a `never` guard mirroring src/types.ts,
- * so adding a row kind without handling it here fails to compile.
+ * so adding a row kind without handling it here fails to compile. In `edit` mode each
+ * editable value cell becomes an {@link EditableCell} (a roving-tabindex edit stop);
+ * every other cell — and all of `view` mode — renders exactly as v0.1.0.
  */
-function GridRowImpl({ row, columns, stickyLeft, formatValue }: GridRowProps) {
+function GridRowImpl({ row, rowIndex, columns, stickyLeft, formatValue, editing }: GridRowProps) {
 	switch (row.kind) {
 		case "spacer":
 			// No label, no values; removed from the a11y tree so it doesn't inflate counts.
@@ -68,14 +77,32 @@ function GridRowImpl({ row, columns, stickyLeft, formatValue }: GridRowProps) {
 			return (
 				<tr data-kind={row.kind}>
 					{labelCell(row.label, row.depth, columns[0], stickyLeft)}
-					{columns.slice(1).map((column) => (
-						<GridCell
-							key={column.id}
-							column={column}
-							value={row.values[column.id]}
-							formatValue={formatValue}
-						/>
-					))}
+					{columns.slice(1).map((column, i) => {
+						const colIndex = i + 1;
+						const value = row.values[column.id];
+						if (editing !== null && isCellEditable(row, column)) {
+							return (
+								<EditableCell
+									key={column.id}
+									editing={editing}
+									rowIndex={rowIndex}
+									colIndex={colIndex}
+									rowLabel={row.label}
+									column={column}
+									value={value}
+									formatValue={formatValue}
+								/>
+							);
+						}
+						return (
+							<GridCell
+								key={column.id}
+								column={column}
+								value={value}
+								formatValue={formatValue}
+							/>
+						);
+					})}
 				</tr>
 			);
 		default: {

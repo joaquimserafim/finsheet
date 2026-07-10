@@ -37,25 +37,25 @@ const DASH = "–";
 /** Options common to every formatter. */
 interface CommonOptions {
 	/** Fixed fraction digits. Default `0` (`formatPercent` defaults to `1`). */
-	precision?: number;
+	readonly precision?: number;
 	/** Wrap negatives in `()` (accounting). `false` → a leading `-`. Default `true`. */
-	parens?: boolean;
+	readonly parens?: boolean;
 	/** Rendered for `null` / `undefined` / non-finite input. Default `"–"`. */
-	blank?: string;
+	readonly blank?: string;
 	/** BCP-47 locale for digit grouping and the decimal mark. Default `"en-US"`. */
-	locale?: string;
+	readonly locale?: string;
 }
 
 /** Options for {@link formatAccounting}. */
 export interface FormatOptions extends CommonOptions {
 	/** Divide by `1` / `1e3` / `1e6` before formatting. Default `"units"`. */
-	scale?: Scale;
+	readonly scale?: Scale;
 }
 
 /** Options for {@link formatCurrency}. */
 export interface CurrencyOptions extends FormatOptions {
 	/** Currency symbol, placed inside the parentheses (`($1,234)`). Default `"$"`. */
-	symbol?: string;
+	readonly symbol?: string;
 }
 
 /** Options for {@link formatPercent}. The input is a ratio: `0.125` → `"12.5%"`. */

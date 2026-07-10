@@ -3,29 +3,41 @@ import type { FormatOptions } from "./format";
 import { formatAccounting } from "./format";
 import { GridRow } from "./GridRow";
 import { cellPresentation, colWidth } from "./internal";
-import type { CellValue, GridModel, Row } from "./types";
+import type { CellEdit, CellValue, GridMode, GridModel, Row } from "./types";
+import { useGridEditing } from "./useGridEditing";
 
 export interface GridProps {
 	/** Controlled data. The grid never mutates it. */
-	model: GridModel;
+	readonly model: GridModel;
 	/**
 	 * Statement-wide accounting format threaded to every value cell — e.g.
 	 * `{ scale: "thousands" }` for a statement shown in thousands, or `precision`.
 	 * Omit for `formatAccounting` defaults (units, 0 dp, parens, "–" blank, en-US).
 	 * Distinct from the deferred per-column `Column.format`.
 	 */
-	defaultFormat?: FormatOptions;
+	readonly defaultFormat?: FormatOptions;
 	/**
 	 * Pin the trailing `total` row (the "bottom line") to a sticky `<tfoot>`.
 	 * Default `true`. `false` renders it inline in `<tbody>` and emits no footer.
 	 */
-	stickyFooter?: boolean;
+	readonly stickyFooter?: boolean;
+	/**
+	 * `"view"` (default) is the read-only v0.1.0 surface, byte-for-byte unchanged.
+	 * `"edit"` makes numeric `line` cells a keyboard-navigable editing surface —
+	 * pair it with {@link GridProps.onEdit}.
+	 */
+	readonly mode?: GridMode;
+	/**
+	 * Fires on each committed cell edit in `edit` mode. The grid never mutates
+	 * `model`: apply the {@link CellEdit} to your own data and pass a fresh `model`.
+	 */
+	readonly onEdit?: (change: CellEdit) => void;
 	/** Rendered as a `<caption>`; supplies the table's accessible name. */
-	caption?: ReactNode;
-	className?: string;
-	id?: string;
-	"aria-label"?: string;
-	"aria-labelledby"?: string;
+	readonly caption?: ReactNode;
+	readonly className?: string;
+	readonly id?: string;
+	readonly "aria-label"?: string;
+	readonly "aria-labelledby"?: string;
 }
 
 /**
@@ -56,6 +68,8 @@ export function Grid({
 	model,
 	defaultFormat,
 	stickyFooter = true,
+	mode = "view",
+	onEdit,
 	caption,
 	className,
 	id,
@@ -64,6 +78,10 @@ export function Grid({
 }: GridProps): ReactElement {
 	const { columns, rows } = model;
 	const stickyLeft = columns[0]?.sticky === "left";
+
+	// The editing controller — `null` in view mode (and Grid renders exactly as
+	// v0.1.0). Never re-renders Grid itself: cells subscribe to it directly.
+	const editing = useGridEditing({ model, mode, onEdit });
 
 	// A referentially-stable bound formatter: keyed on the PRIMITIVE option fields,
 	// not object identity, so an inline `defaultFormat={{…}}` doesn't defeat the
@@ -92,14 +110,23 @@ export function Grid({
 		<GridRow
 			key={row.id ?? `__row_${index}`}
 			row={row}
+			rowIndex={index}
 			columns={columns}
 			stickyLeft={stickyLeft}
 			formatValue={formatValue}
+			editing={editing}
 		/>
 	);
 
 	return (
-		<div className={className ? `finsheet ${className}` : "finsheet"} id={id}>
+		// biome-ignore lint/a11y/noStaticElementInteractions: the scroll port delegates keyboard/pointer editing to the focusable cells + inputs of the wrapped <table> (roving tabindex); the handlers are absent entirely in view mode.
+		<div
+			className={className ? `finsheet ${className}` : "finsheet"}
+			id={id}
+			onKeyDown={editing?.onKeyDown}
+			onClick={editing?.onClick}
+			onDoubleClick={editing?.onDoubleClick}
+		>
 			<table
 				className="finsheet-table"
 				aria-label={ariaLabel}

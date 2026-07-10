@@ -32,7 +32,7 @@ export type CellValue = number | null;
  * safe. Pairs with `noUncheckedIndexedAccess` — `values[id]` is already
  * `CellValue | undefined`.
  */
-export type CellValues = Record<string, CellValue>;
+export type CellValues = Readonly<Record<string, CellValue>>;
 
 /** Horizontal alignment. Default: `numeric` columns → `"right"`, else `"left"`. */
 export type Align = "left" | "right" | "center";
@@ -43,51 +43,51 @@ export type Align = "left" | "right" | "center";
  */
 export interface Column {
 	/** Stable key: value rows address cells by this id, and it is the React key. */
-	id: string;
+	readonly id: string;
 	/** Header text shown in `<thead>`. */
-	header: string;
+	readonly header: string;
 	/**
 	 * Marks a value column: `tabular-nums` + right-aligned by default, and a
 	 * prerequisite for a cell being editable. Omit for text columns (the label).
 	 */
-	numeric?: boolean;
+	readonly numeric?: boolean;
 	/** Overrides the default alignment (`"right"` when `numeric`, else `"left"`). */
-	align?: Align;
+	readonly align?: Align;
 	/** Pins the column to the left edge while the body scrolls horizontally. */
-	sticky?: "left";
+	readonly sticky?: "left";
 	/**
 	 * Locks this column against edits even on an editable line (e.g. a computed
 	 * variance column: `numeric: true` so it renders right-aligned/tabular,
 	 * `editable: false` so it is never an input). Default: editable.
 	 */
-	editable?: boolean;
+	readonly editable?: boolean;
 	/** `<colgroup>` width for `table-layout: fixed`. Number = px; string = any CSS length. */
-	width?: number | string;
+	readonly width?: number | string;
 }
 
 /** Fields shared by every row kind. */
 interface RowBase {
 	/** Stable identity for React keys and cell addressing. Falls back to row index. */
-	id?: string;
+	readonly id?: string;
 }
 
 /** Fields shared by the labelled (non-spacer) rows. */
 interface LabeledRow extends RowBase {
 	/** Text rendered in the label column (`columns[0]`). */
-	label: string;
+	readonly label: string;
 	/** Indentation depth for nested sections / subtotals. Default `0`. */
-	depth?: number;
+	readonly depth?: number;
 }
 
 /** Fields shared by the value-bearing rows (`line` / `subtotal` / `total`). */
 interface ValuedRow extends LabeledRow {
 	/** Cells keyed by {@link Column.id}. Sparse; absent cells render blank. */
-	values: CellValues;
+	readonly values: CellValues;
 }
 
 /** A group header with no values, e.g. "Assets" or "Operating expenses". */
 export interface SectionRow extends LabeledRow {
-	kind: "section";
+	readonly kind: "section";
 }
 
 /**
@@ -100,14 +100,14 @@ export interface SectionRow extends LabeledRow {
  * unless the line or the column locks them. (In `view` mode nothing is editable.)
  */
 export interface LineRow extends ValuedRow {
-	kind: "line";
+	readonly kind: "line";
 	/** Locks the whole line against edits (e.g. a computed/reference line). Default: editable. */
-	editable?: boolean;
+	readonly editable?: boolean;
 }
 
 /** A running subtotal (e.g. gross profit, EBIT). Computed-looking; never editable. */
 export interface SubtotalRow extends ValuedRow {
-	kind: "subtotal";
+	readonly kind: "subtotal";
 }
 
 /**
@@ -118,12 +118,12 @@ export interface SubtotalRow extends ValuedRow {
  * renderer decides which, if any, to pin to a sticky `<tfoot>`.
  */
 export interface TotalRow extends ValuedRow {
-	kind: "total";
+	readonly kind: "total";
 }
 
 /** A visual gap between groups. No label, no values; styled by a themed default gap. */
 export interface SpacerRow extends RowBase {
-	kind: "spacer";
+	readonly kind: "spacer";
 }
 
 /** The row discriminated union the Grid renders via `switch (row.kind)`. */
@@ -138,4 +138,31 @@ export interface GridModel {
 	columns: readonly Column[];
 	/** `readonly` — the grid is a controlled component and never mutates consumer data. */
 	rows: readonly Row[];
+}
+
+/**
+ * The grid's interaction mode. `"view"` (default) is the read-only v0.1.0 surface,
+ * byte-for-byte unchanged. `"edit"` turns numeric `line` cells into a keyboard-
+ * navigable, single-cell editing surface. `"bulk"` (Epic 6) is not yet built.
+ */
+export type GridMode = "view" | "edit";
+
+/**
+ * A single committed cell edit, emitted by `Grid`'s `onEdit`. The grid stays a
+ * controlled component: it NEVER mutates `model`. On a valid commit it fires this,
+ * the consumer applies it to its own data, and passes a fresh `model` back.
+ *
+ * `rowIndex` is always present (an index into `model.rows`); `rowId` is present
+ * only when the edited row declares an `id`. Address the change by whichever your
+ * data layer keys on.
+ */
+export interface CellEdit {
+	/** `row.id` of the edited row, when it declares one. */
+	readonly rowId?: string;
+	/** Index of the edited row in `model.rows`. Always available. */
+	readonly rowIndex: number;
+	/** `id` of the edited value column. */
+	readonly columnId: string;
+	/** The committed value: a parsed `number`, or `null` when the cell was cleared. */
+	readonly value: CellValue;
 }

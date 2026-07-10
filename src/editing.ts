@@ -63,6 +63,32 @@ export function coordKey(c: EditCoord): string {
 	return `${c.row}:${c.col}`;
 }
 
+/** Structural equality for two (nullable) coordinates. Lets the React layer skip a
+ *  redundant reconcile dispatch when the clamped active cell hasn't actually moved. */
+export function sameCoord(a: EditCoord | null, b: EditCoord | null): boolean {
+	if (a === null || b === null) {
+		return a === b;
+	}
+	return a.row === b.row && a.col === b.col;
+}
+
+/**
+ * Whether a committing key (Enter / Tab) must be ignored because an IME
+ * composition is in flight — e.g. selecting a candidate with Enter must land the
+ * candidate, not commit the cell. Pure so the editor's keydown stays branch-thin
+ * and this rule is unit-tested without a real composition session.
+ */
+export function ignoreDuringComposition(key: string, isComposing: boolean): boolean {
+	return isComposing && (key === "Enter" || key === "Tab");
+}
+
+/** Whether any browser modifier is held. Those combos (ctrl/cmd/alt + key) are left
+ *  to the browser — never treated as a move or an edit seed. Pure so the keydown
+ *  handlers stay branch-thin and every operand is unit-covered. */
+export function modifierHeld(ctrl: boolean, meta: boolean, alt: boolean): boolean {
+	return ctrl || meta || alt;
+}
+
 /** Map a keydown to an intent. `mod` = ctrl/cmd/alt held (those combos are left to the browser). */
 export function classifyKey(
 	key: string,

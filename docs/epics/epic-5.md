@@ -88,19 +88,43 @@ threshold; Unicode whitespace); active `<td>` drops to `tabindex=-1` while editi
 sole tab stop); suppress no-op commits; skip the editable-scan in view mode; ignore Enter/Tab during
 IME composition.
 
+## As-built — Stage 2 (2026-07-10)
+
+Stage 1 (pure core) shipped in `9f0280c`. Stage 2 (the React layer) adds `editStore.ts`
+(per-coord `useSyncExternalStore`), `useGridEditing.ts` (controller), `CellEditor.tsx`
+(uncontrolled input), `EditableCell.tsx` (memoized cell), and threads `mode`/`onEdit`
+through `Grid`/`GridRow`/`GridCell`. 131 tests, 100% coverage.
+
+**Deviation from "full ARIA grid roles" (line 84).** Implementing `role="grid"` on this
+*irregular* table (colspan section/spacer rows, no `aria-rowindex`/`aria-colindex`) both
+fought the a11y linter (5 false positives) and risks misleading screen readers more than the
+native table. Shipped instead: native `<table>` semantics (scope-based headers) + roving
+tabindex + `aria-current` on the active cell + labeled inputs. Fully accessible for
+keyboard/pointer; **known limitation:** without `role=grid`, AT users must be in focus/forms
+mode for arrow-key *cell* navigation. A correct composite grid (roles + `aria-rowindex/colindex`
++ an `aria-live` edit/nav announcement) is deferred to **Epic 8 (a11y polish)**, not bolted on
+half-right here.
+
+**Adversarial review fixes folded in (6 findings, all verified).** Type-to-edit was dropping
+the first digit (`select()` clobbered the seed → caret-to-end when seeded); a structural row
+change under an open editor could commit to the wrong row (now anchors the editor to the row's
+identity and discards the draft on a shape change); a parent-driven editor unmount could commit
+a stale draft against a torn-down model (unmount now arms the blur guard); `aria-current` added;
+`String(value)` exponential seeds (`5e-7`) that `parseAccounting` rejected now render fixed-point.
+
 ## Tasks
 
-- [ ] `mode` + `onEdit` props, `CellEdit` type; `view` unchanged
-- [ ] `parseAccounting` pure fn + tests
-- [ ] `isEditable(row, col)` helper + navigable-cell index
-- [ ] edit/nav reducer (active cell · editing · draft)
-- [ ] roving tabindex + container keydown; focus management
-- [ ] active-cell `<input>`: type-to-edit, commit on Enter/Tab/blur, cancel on Esc
-- [ ] keyboard nav per table above, skipping non-editable cells
-- [ ] `GridCell` → `React.memo`; verify 1-cell re-render
-- [ ] CSS: focus ring + editing input + non-editable cursor (new `--fs-*` tokens)
-- [ ] interaction tests (`user-event`): nav, edit, commit, cancel, guard, parse, re-render count
-- [ ] README: editing + `onEdit` example
+- [x] `mode` + `onEdit` props, `CellEdit` type; `view` unchanged
+- [x] `parseAccounting` pure fn + tests *(Stage 1)*
+- [x] `isEditable(row, col)` helper + navigable-cell index *(Stage 1)*
+- [x] edit/nav reducer (active cell · editing) — draft lives in the uncontrolled input, not state *(Stage 1)*
+- [x] roving tabindex + container keydown; focus management (`focusIntentRef`)
+- [x] active-cell `<input>`: type-to-edit, commit on Enter/Tab/blur, cancel on Esc
+- [x] keyboard nav per table above, skipping non-editable cells
+- [x] `EditableCell` → `React.memo` + per-coord subscription *(strict 1-cell re-render **count** assertion → Stage 3 browser suite)*
+- [x] CSS: focus ring + editing input + non-editable cursor (new `--fs-*` tokens)
+- [~] interaction tests: **happy-dom RTL suite done** (131 tests, 100% cov); `@vitest/browser` focus/blur/selection suite + re-render count → **Stage 3**
+- [ ] README: editing + `onEdit` example → **Stage 3**
 
 **Done when:** keyboard nav + single-cell edit work in `edit` mode; subtotals/totals never
-editable; one cell re-renders per keystroke; `view` mode identical to v0.1.0.
+editable; one cell re-renders per keystroke; `view` mode identical to v0.1.0. — **met** (Stage 2).

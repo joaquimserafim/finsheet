@@ -43,6 +43,9 @@
 	--fs-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 	--fs-font-size: 0.875rem;
 	--fs-line-height: 1.4;
+	/* editing (Epic 5): focus ring on the active cell + editor, and the reject state */
+	--fs-focus: #2563eb;
+	--fs-invalid: #dc2626;
 }
 
 /* Dark — follow the OS unless [data-theme="light"] opts out. */
@@ -55,6 +58,8 @@
 		--fs-head-bg: #171a21;
 		--fs-head-fg: #cbd5e1;
 		--fs-section-fg: #f3f4f6;
+		--fs-focus: #3b82f6;
+		--fs-invalid: #f87171;
 	}
 }
 
@@ -67,6 +72,8 @@
 	--fs-head-bg: #171a21;
 	--fs-head-fg: #cbd5e1;
 	--fs-section-fg: #f3f4f6;
+	--fs-focus: #3b82f6;
+	--fs-invalid: #f87171;
 }
 
 /* Light — forced regardless of OS (re-assert defaults). */
@@ -211,4 +218,40 @@
 .finsheet-table tr[data-kind="spacer"] td {
 	height: var(--fs-spacer-h);
 	padding: 0;
+}
+
+/* ── Editing (Epic 5) — only present in `edit` mode ────────────────────────── */
+
+/* Editable cells advertise themselves; the active one is the roving-tabindex stop. */
+.finsheet-table td[data-fs-row] {
+	cursor: cell;
+}
+
+/* Active cell (focused, not yet editing): the keyboard-focus ring. */
+.finsheet-table td[data-fs-row]:focus,
+.finsheet-table td[data-fs-row]:focus-visible {
+	outline: 2px solid var(--fs-focus);
+	outline-offset: -2px;
+}
+
+/* The editor input fills the cell and inherits its typography + alignment, so the
+   digits don't jump between the read (formatted) and edit (raw) states. */
+.finsheet-cell-input {
+	box-sizing: border-box;
+	inline-size: 100%;
+	margin: 0;
+	border: 0;
+	padding: 0;
+	font: inherit;
+	color: inherit;
+	text-align: inherit;
+	background: var(--fs-bg);
+	outline: 2px solid var(--fs-focus);
+	outline-offset: -2px;
+}
+
+/* Rejected input: the parse failed, the value was NOT stored. */
+.finsheet-cell-input.is-invalid {
+	color: var(--fs-invalid);
+	outline-color: var(--fs-invalid);
 }

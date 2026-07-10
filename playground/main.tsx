@@ -1,5 +1,5 @@
-import { Grid, type GridModel } from "finsheet";
-import { StrictMode } from "react";
+import { type CellEdit, Grid, type GridModel } from "finsheet";
+import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../src/styles.css";
 
@@ -116,6 +116,46 @@ const pnl: GridModel = {
 	],
 };
 
+/** Controlled edit-mode demo: the grid never mutates `model`; each committed edit
+ *  round-trips through `onEdit` and back in as a fresh `model`. */
+function Playground() {
+	const [model, setModel] = useState(pnl);
+	const [last, setLast] = useState<CellEdit | null>(null);
+
+	const onEdit = (change: CellEdit) => {
+		setLast(change);
+		setModel((prev) => ({
+			columns: prev.columns,
+			rows: prev.rows.map((row, i) =>
+				i === change.rowIndex && "values" in row
+					? { ...row, values: { ...row.values, [change.columnId]: change.value } }
+					: row,
+			),
+		}));
+	};
+
+	return (
+		<main style={{ fontFamily: "system-ui, sans-serif", padding: 24, maxWidth: 760 }}>
+			<h1>finsheet playground</h1>
+			<p>
+				Edit mode — click or arrow to a numeric line cell, type to replace (or Enter/F2 to
+				edit in place), <kbd>Enter</kbd>/<kbd>Tab</kbd> to commit, <kbd>Esc</kbd> to cancel,
+				<kbd>Backspace</kbd> to clear. Subtotals, totals and the Δ column never edit.
+			</p>
+			<Grid
+				model={model}
+				mode="edit"
+				onEdit={onEdit}
+				caption="Consolidated income statement (in thousands)"
+			/>
+			<p style={{ color: "#6b7280", fontVariantNumeric: "tabular-nums" }}>
+				last commit:{" "}
+				{last ? `rows[${last.rowIndex}].${last.columnId} = ${last.value ?? "—"}` : "—"}
+			</p>
+		</main>
+	);
+}
+
 const root = document.getElementById("root");
 if (!root) {
 	throw new Error("missing #root element");
@@ -123,13 +163,6 @@ if (!root) {
 
 createRoot(root).render(
 	<StrictMode>
-		<main style={{ fontFamily: "system-ui, sans-serif", padding: 24, maxWidth: 720 }}>
-			<h1>finsheet playground</h1>
-			<p>
-				Read-only P&amp;L — scroll to check the sticky header, sticky label column, and
-				pinned net-income footer.
-			</p>
-			<Grid model={pnl} caption="Consolidated income statement (in thousands)" />
-		</main>
+		<Playground />
 	</StrictMode>,
 );

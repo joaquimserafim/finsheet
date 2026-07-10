@@ -8,13 +8,15 @@ interface GridCellProps {
 }
 
 /**
- * One value `<td>`. Value columns are never sticky in v1, so presentation is a
- * plain column lookup. `value` is passed to the formatter as-is (`CellValue |
- * undefined`) — never coerced with `?? 0`, which would fabricate a real figure;
- * `formatAccounting` already maps `null` / `undefined` to the blank placeholder.
+ * One read-only value `<td>` — identical in `view` and `edit` mode. Value columns
+ * are never sticky in v1, so presentation is a plain column lookup. `value` is
+ * passed to the formatter as-is (`CellValue | undefined`) — never coerced with
+ * `?? 0`, which would fabricate a real figure; `formatAccounting` already maps
+ * `null` / `undefined` to the blank placeholder.
  *
- * The cell-granularity seam for Epic 5 editing: this becomes `React.memo` once a
- * per-cell `isActive` / `onEdit` prop first exists. Not exported.
+ * In `edit` mode the editable cells use {@link EditableCell} instead; this renders
+ * every cell the editability guard rejects (locked columns, subtotals, totals) and
+ * every cell in `view` mode.
  */
 export function GridCell({ column, value, formatValue }: GridCellProps) {
 	const { className, align } = cellPresentation(column, false);
