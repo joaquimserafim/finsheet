@@ -108,13 +108,24 @@ describe("row kinds", () => {
 		expect(total).not.toBeNull();
 	});
 
-	test("spacer: aria-hidden full-width empty row, no label", () => {
+	test("spacer: aria-hidden gap; a sticky first cell keeps the divider unbroken + a fill cell", () => {
 		const spacer = grid(pnl).querySelector('tr[data-kind="spacer"]');
 		expect(spacer?.getAttribute("aria-hidden")).toBe("true");
 		expect(spacer?.querySelector("th")).toBeNull();
-		const cell = spacer?.querySelectorAll("td");
-		expect(cell).toHaveLength(1);
-		expect(cell?.[0]?.getAttribute("colspan")).toBe("4");
+		const cells = spacer?.querySelectorAll("td");
+		expect(cells).toHaveLength(2);
+		expect(cells?.[0]?.classList.contains("is-sticky")).toBe(true); // carries the vertical divider
+		expect(cells?.[1]?.getAttribute("colspan")).toBe("3");
+	});
+
+	test("spacer in a single-column, non-sticky model: one plain cell, no divider, no fill", () => {
+		const spacer = grid({
+			columns: [{ id: "line", header: "" }],
+			rows: [{ kind: "spacer", id: "s" }],
+		}).querySelector('tr[data-kind="spacer"]');
+		const cells = spacer?.querySelectorAll("td");
+		expect(cells).toHaveLength(1); // columns.length not > 1 → no fill cell
+		expect(cells?.[0]?.classList.contains("is-sticky")).toBe(false); // not sticky → no divider
 	});
 
 	test("section fill cell is skipped for a label-only (single-column) model", () => {

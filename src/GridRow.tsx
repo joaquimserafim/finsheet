@@ -56,10 +56,14 @@ function GridRowImpl({ row, rowIndex, columns, stickyLeft, formatValue, editing 
 	switch (row.kind) {
 		case "spacer":
 			// No label, no values; removed from the a11y tree so it doesn't inflate counts.
+			// The first cell is the (empty) STICKY label cell, so the label column's
+			// vertical divider runs unbroken THROUGH the gap (and stays put on horizontal
+			// scroll); the remaining columns are one fill cell.
 			return (
 				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: a decorative spacer <tr> is never focusable; aria-hidden intentionally drops the empty gap from the a11y tree.
 				<tr data-kind="spacer" aria-hidden="true">
-					<td colSpan={columns.length} />
+					<td className={stickyLeft ? "is-sticky" : undefined} />
+					{columns.length > 1 ? <td colSpan={columns.length - 1} /> : null}
 				</tr>
 			);
 		case "section":
