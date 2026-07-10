@@ -22,6 +22,7 @@ export { Grid } from "./Grid";
 export { parseAccounting } from "./parse";
 export type {
 	Align,
+	BulkEdit,
 	CellEdit,
 	CellValue,
 	CellValues,
@@ -29,9 +30,11 @@ export type {
 	GridMode,
 	GridModel,
 	LineRow,
+	RejectedCell,
 	Row,
 	RowKind,
 	SectionRow,
+	SkippedCell,
 	SpacerRow,
 	SubtotalRow,
 	TotalRow,

@@ -133,10 +133,10 @@ per-stage deliverables** — each box flips only when its commit lands (never "h
 - [x] clipboard core — TSV parse/serialize + `computeCopy` + `computePastePatches` (atomic, `skipped[]`)
 - [x] fill core — `computeFillPatches` (verbatim) + `computeClearPatches`
 
-**Stage 2 — state + store:**
-- [ ] reducer `anchor` field + `EXTEND`/`SELECT_ALL`/`CLEAR_SELECTION`/`RECONCILE`
-- [ ] `editStore` `CELL_SELECTED` + `cellStatus` branch
-- [ ] `BulkEdit` / `GridMode "bulk"` types
+**Stage 2 — state + store:** ✅ committed
+- [x] reducer `anchor` field + `EXTEND`/`SELECT_ALL`/`CLEAR_SELECTION`/`RECONCILE` (`SET_ACTIVE`/`START_EDIT` collapse)
+- [x] `editStore` `CELL_SELECTED` + `cellStatus` branch (rect cached, recomputed once per dispatch)
+- [x] `GridMode "bulk"` + `BulkEdit` types (exported with `RejectedCell`/`SkippedCell`)
 
 **Stage 3 — React wiring (the gestures + interaction tests):**
 - [ ] range gestures — shift-arrow / shift-click / drag extend · `Cmd/Ctrl+A` · collapse + reconcile

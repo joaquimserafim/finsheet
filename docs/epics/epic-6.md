@@ -279,10 +279,10 @@ All settled by the founder; folded into the locked decisions above.
 - [x] `fill.ts`: `computeFillPatches` down/right + `computeClearPatches` + tests
 - [x] `types.ts`: `RejectedCell` + `SkippedCell` (needed by `clipboard.ts`; `BulkEdit` + `GridMode "bulk"` → Stage 2)
 
-**Stage 2 — state + store:**
-- [ ] `editReducer.ts`: `EditState += anchor`; `EXTEND`/`SELECT_ALL`/`CLEAR_SELECTION`/`RECONCILE`; `SET_ACTIVE`/`START_EDIT` set `anchor:null`; update `editReducer.test.ts`/`editStore.test.ts` (`anchor:null`) — fix 7
-- [ ] `editStore.ts`: `CELL_SELECTED=4` + `cellStatus` branch + cached rect + tests
-- [ ] `types.ts`: `GridMode += "bulk"`; `BulkEdit` + `RejectedCell` + `SkippedCell`; export
+**Stage 2 — state + store:** ✅ **committed** (185 tests, 100% cov)
+- [x] `editReducer.ts`: `EditState += anchor`; `EXTEND`/`SELECT_ALL`/`CLEAR_SELECTION`/`RECONCILE`; `SET_ACTIVE`/`START_EDIT` set `anchor:null`; updated `editReducer.test.ts`/`editStore.test.ts` (`anchor:null`) — fix 7
+- [x] `editStore.ts`: `CELL_SELECTED=4` + `cellStatus` branch + cached rect (recomputed once per dispatch) + tests
+- [x] `types.ts`: `GridMode += "bulk"`; `BulkEdit`; exported `BulkEdit`/`RejectedCell`/`SkippedCell` from `index.ts`
 
 **Stage 3 — React wiring (happy-dom RTL):**
 - [ ] `useGridEditing.ts`: `bulkMode` gate; keydown tries `classifyBulkKey` first → falls through to Epic 5; `onClick` shift-extend; reconcile effect → `reconcileSelection`/`sameSelection` (preserve-rect vs collapse)

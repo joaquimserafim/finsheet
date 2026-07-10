@@ -143,9 +143,11 @@ export interface GridModel {
 /**
  * The grid's interaction mode. `"view"` (default) is the read-only v0.1.0 surface,
  * byte-for-byte unchanged. `"edit"` turns numeric `line` cells into a keyboard-
- * navigable, single-cell editing surface. `"bulk"` (Epic 6) is not yet built.
+ * navigable, single-cell editing surface. `"bulk"` (Epic 6) is a strict superset of
+ * `"edit"` — everything edit does, plus rectangular range selection, clipboard
+ * copy/paste (Excel/TSV), fill-down/right, and range-clear.
  */
-export type GridMode = "view" | "edit";
+export type GridMode = "view" | "edit" | "bulk";
 
 /**
  * A single committed cell edit, emitted by `Grid`'s `onEdit`. The grid stays a
@@ -186,4 +188,24 @@ export interface RejectedCell {
 export interface SkippedCell {
 	readonly rowIndex: number;
 	readonly columnId: string;
+}
+
+/**
+ * One bulk operation, emitted by `Grid`'s `onBulkEdit` (`bulk` mode, Epic 6). Fires
+ * **exactly once** per op; the grid stays controlled (never mutates `model`) — the
+ * consumer applies every `edit` and passes back one fresh `model` (one re-render, one
+ * undo step). `onEdit` is unaffected; it still carries single-cell `edit`-mode commits.
+ */
+export interface BulkEdit {
+	/** Which gesture produced this op. */
+	readonly kind: "paste" | "fill-down" | "fill-right" | "clear";
+	/**
+	 * The cells to write: editable + actually-changed only (no-ops suppressed), reusing
+	 * {@link CellEdit} verbatim. Empty when a paste was rejected wholesale (atomic policy).
+	 */
+	readonly edits: readonly CellEdit[];
+	/** Paste cells that failed to parse ⇒ under the atomic policy, `edits` is empty. */
+	readonly rejected?: readonly RejectedCell[];
+	/** Clipboard cells dropped because their target isn't editable — reported, never silent. */
+	readonly skipped?: readonly SkippedCell[];
 }
