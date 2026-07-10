@@ -111,28 +111,45 @@ Proves the render surface **and** the publish path on low-risk ground.
 ## Milestone `v0.2.0` — Editing
 
 ### Epic 5 — Single-cell editing + keyboard nav (`view` / `edit`)
-*Stages 1–2 committed (`9f0280c` pure core, `c2ca820` React layer); Stage 3 (browser suite + README) remaining.*
+*Functionally complete + shipped: Stage 1 pure core `9f0280c`, Stage 2 React layer `c2ca820`, Stage 3 README
+`dcf3966`. The one remaining box (browser suite) is **deferred to Epic 8** — every box below is binary.*
 - [x] `mode` prop + reducer
 - [x] controlled `value` + `onEdit`; editable guard (totals/subtotals not editable)
 - [x] active-cell state + roving tabindex
 - [x] keyboard: arrows / Enter (commit + down) / Tab (right) / Esc (cancel) / type-to-edit
 - [x] local uncontrolled input on active cell; commit on blur/Enter
-- [~] interaction tests — happy-dom RTL suite done (134 tests, 100% cov); `@vitest/browser` focus/blur/selection suite → **Stage 3**
+- [x] interaction tests — happy-dom RTL suite (134 tests, 100% cov)
 - [x] README editing docs (Editing section, `mode`/`onEdit` props, keyboard table, examples link)
-- **Done when:** keyboard nav + single-cell edit works; one cell re-renders per keystroke. — **met** (strict re-render-count assertion → Stage 3).
-- *Remaining to close Epic 5:* the `@vitest/browser` focus/blur/selection suite (CI-only; covers the one browser-only blur branch + real-focus fidelity).
+- [ ] `@vitest/browser` focus/blur suite + strict 1-cell re-render-count → **deferred to Epic 8** (rides with Epic 6 Stage 4)
+- **Done when:** keyboard nav + single-cell edit works; one cell re-renders per keystroke. — **met.**
 
 ### Epic 6 — Bulk mode (`bulk`) — "the spreadsheet"
 *The spreadsheet-in-the-browser surface: range editing + Excel/xlsx interop (the clipboard is TSV).
-Full design + resolved founder gates in [docs/epics/epic-6.md](epics/epic-6.md).*
-- [ ] range-selection model (anchor + focus, shift/drag, `Cmd/Ctrl+A` select-all)
-- [ ] clipboard **paste** (positional TSV, atomic) + **copy** (range → TSV, round-trips to/from Excel) + **cut** (copy+clear)
-- [ ] fill-down / fill-right (`Cmd/Ctrl+D` / `Cmd/Ctrl+R`, verbatim — no series inference)
-- [ ] range-clear (Delete/Backspace over a selection)
-- [ ] respect the editable guard across a range (skip + **report** non-editable targets)
-- [ ] `onBulkEdit` one-swap contract (`BulkEdit`: `edits` + `rejected` + `skipped`)
-- [ ] interaction tests (happy-dom RTL + `@vitest/browser`)
-- **Done when:** paste a block from a spreadsheet + fill-down write **editable cells only**; copy round-trips; non-editable targets skipped + reported; one `onBulkEdit` → one model swap → one undo.
+Full design + resolved founder gates in [docs/epics/epic-6.md](epics/epic-6.md). Broken into **binary,
+per-stage deliverables** — each box flips only when its commit lands (never "half-done").*
+
+**Stage 1 — pure core (logic):** ✅ committed `3b0b62e`
+- [x] selection model — `selectionRect`/`withinRect`/`cellsInRange`/`reconcileSelection`/`classifyBulkKey`
+- [x] clipboard core — TSV parse/serialize + `computeCopy` + `computePastePatches` (atomic, `skipped[]`)
+- [x] fill core — `computeFillPatches` (verbatim) + `computeClearPatches`
+
+**Stage 2 — state + store:**
+- [ ] reducer `anchor` field + `EXTEND`/`SELECT_ALL`/`CLEAR_SELECTION`/`RECONCILE`
+- [ ] `editStore` `CELL_SELECTED` + `cellStatus` branch
+- [ ] `BulkEdit` / `GridMode "bulk"` types
+
+**Stage 3 — React wiring (the gestures + interaction tests):**
+- [ ] range gestures — shift-arrow / shift-click / drag extend · `Cmd/Ctrl+A` · collapse + reconcile
+- [ ] clipboard handlers — copy / cut / paste (editor-guarded, empty-suppressed) → `onBulkEdit`
+- [ ] fill / clear gestures — `Cmd/Ctrl+D`/`R` · Delete-over-range · `data-fs-selected` band CSS
+- [ ] happy-dom RTL interaction suite
+
+**Stage 4 — browser + docs:**
+- [ ] `@vitest/browser` real clipboard/pointer suite (also closes Epic 5's deferred browser suite)
+- [ ] README bulk-mode section
+
+**Done when:** paste a block from a spreadsheet + fill-down write **editable cells only**; copy round-trips;
+non-editable targets skipped + reported; one `onBulkEdit` → one model swap → one undo.
 
 ### Epic 7 — Performance hardening
 - [ ] memo boundaries (Row / Cell) + stable callbacks

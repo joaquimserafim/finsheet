@@ -269,14 +269,15 @@ All settled by the founder; folded into the locked decisions above.
 
 ## Tasks (staged, reviewable — same discipline as Epic 5)
 
-**Stage 1 — pure core (node/happy-dom, 100% cov):**
-- [ ] `selection.ts`: `SelectionRect` + `selectionRect`/`withinRect`/`cellsInRange`/`isMultiSelection` + tests
-- [ ] `selection.ts`: `reconcileSelection` (symmetric collapse — fix 3) + `sameSelection` + tests
-- [ ] `selection.ts`: `classifyBulkKey` (+ tests proving `{none}` falls through to the untouched `classifyKey`)
-- [ ] `clipboard.ts`: extract `rawCellText`; `parseClipboard`/`serializeClipboard` TSV grammar + tests
-- [ ] `clipboard.ts`: `computeCopy` (geometric, inclusive, raw, **kind-gated** — fix 5) + tests
-- [ ] `clipboard.ts`: `computePastePatches` (positional, clip, guard-skip → `skipped[]`, `""`→null, **atomic reject**, 1×1-fills-selection, no-op suppress) + tests
-- [ ] `fill.ts`: `computeFillPatches` down/right + `computeClearPatches` + tests
+**Stage 1 — pure core (node/happy-dom, 100% cov):** ✅ **committed `3b0b62e`** (178 tests, 100% cov)
+- [x] `selection.ts`: `SelectionRect` + `selectionRect`/`withinRect`/`cellsInRange`/`isMultiSelection` + tests
+- [x] `selection.ts`: `reconcileSelection` (symmetric collapse — fix 3) + `sameSelection` + tests
+- [x] `selection.ts`: `classifyBulkKey` (+ tests proving `{none}` falls through to the untouched `classifyKey`)
+- [x] `clipboard.ts`: `rawCellText` + `parseClipboard`/`serializeClipboard` TSV grammar + tests *(EditableCell switchover → Stage 3)*
+- [x] `clipboard.ts`: `computeCopy` (geometric, inclusive, raw, **kind-gated** — fix 5) + tests
+- [x] `clipboard.ts`: `computePastePatches` (positional, clip, guard-skip → `skipped[]`, `""`→null, **atomic reject**, 1×1-fills-selection, no-op suppress) + tests
+- [x] `fill.ts`: `computeFillPatches` down/right + `computeClearPatches` + tests
+- [x] `types.ts`: `RejectedCell` + `SkippedCell` (needed by `clipboard.ts`; `BulkEdit` + `GridMode "bulk"` → Stage 2)
 
 **Stage 2 — state + store:**
 - [ ] `editReducer.ts`: `EditState += anchor`; `EXTEND`/`SELECT_ALL`/`CLEAR_SELECTION`/`RECONCILE`; `SET_ACTIVE`/`START_EDIT` set `anchor:null`; update `editReducer.test.ts`/`editStore.test.ts` (`anchor:null`) — fix 7
