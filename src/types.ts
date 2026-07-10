@@ -166,3 +166,24 @@ export interface CellEdit {
 	/** The committed value: a parsed `number`, or `null` when the cell was cleared. */
 	readonly value: CellValue;
 }
+
+/**
+ * A clipboard cell a bulk paste (Epic 6) could NOT parse — reported (not coerced) so
+ * the consumer can surface it. Under the atomic policy, any `rejected` ⇒ nothing pasted.
+ */
+export interface RejectedCell {
+	readonly rowIndex: number;
+	readonly columnId: string;
+	/** The raw clipboard text that failed to parse. */
+	readonly text: string;
+}
+
+/**
+ * A non-empty clipboard cell a bulk paste (Epic 6) dropped because its target isn't
+ * editable (a subtotal/total/section row or a locked column). Reported so the loss is
+ * never silent.
+ */
+export interface SkippedCell {
+	readonly rowIndex: number;
+	readonly columnId: string;
+}
