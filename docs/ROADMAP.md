@@ -138,11 +138,18 @@ per-stage deliverables** — each box flips only when its commit lands (never "h
 - [x] `editStore` `CELL_SELECTED` + `cellStatus` branch (rect cached, recomputed once per dispatch)
 - [x] `GridMode "bulk"` + `BulkEdit` types (exported with `RejectedCell`/`SkippedCell`)
 
-**Stage 3 — React wiring (the gestures + interaction tests):**
-- [ ] range gestures — shift-arrow / shift-click / drag extend · `Cmd/Ctrl+A` · collapse + reconcile
-- [ ] clipboard handlers — copy / cut / paste (editor-guarded, empty-suppressed) → `onBulkEdit`
-- [ ] fill / clear gestures — `Cmd/Ctrl+D`/`R` · Delete-over-range · `data-fs-selected` band CSS
-- [ ] happy-dom RTL interaction suite
+**Stage 3a — selection gestures (keyboard + band):** ✅ committed
+- [x] `bulkMode`/`interactive` gate; keydown tries `classifyBulkKey` first → falls through to edit nav
+- [x] shift-arrow / shift-click extend · `Cmd/Ctrl+A` select-all · Esc collapse
+- [x] reconcile effect → `reconcileSelection`/`sameSelection` (preserve-rect vs collapse)
+- [x] `EditableCell` `data-fs-selected` + `--fs-select-bg` band CSS; playground edit/bulk toggle
+- [x] happy-dom RTL selection suite (12 tests)
+
+**Stage 3b — clipboard + fill + pointer (writes → `onBulkEdit`):**
+- [ ] `onCopy`/`onCut`/`onPaste` over the pure helpers → `onBulkEdit` (editor-guarded — fix 1; empty-suppressed — fix 6)
+- [ ] fill (`Cmd/Ctrl+D`/`R`) + Delete-over-range clear → `onBulkEdit`
+- [ ] `onPointerDown`/`Move`/`Up` drag-select · `Grid` `onBulkEdit` prop + port bindings
+- [ ] happy-dom RTL suite (mocked `clipboardData`/pointer; paste-into-open-editor bails)
 
 **Stage 4 — browser + docs:**
 - [ ] `@vitest/browser` real clipboard/pointer suite (also closes Epic 5's deferred browser suite)

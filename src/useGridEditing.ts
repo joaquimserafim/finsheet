@@ -1,6 +1,7 @@
 /**
- * finsheet — the editing controller (Epic 5). The one hook that turns the pure
- * core (editing.ts / editReducer.ts / editStore.ts) into live behaviour.
+ * finsheet — the editing controller (Epics 5–6). The one hook that turns the pure
+ * core (editing.ts / editReducer.ts / editStore.ts / selection.ts) into live
+ * behaviour, for both `edit` (single cell) and `bulk` (range selection).
  *
  * It owns: the editable-cell list (skipped entirely in `view` mode), the edit
  * {@link EditStore} (created once), a `focusIntentRef` that gates who may claim DOM
@@ -9,8 +10,9 @@
  * editor input calls. `Grid` itself never re-renders on an edit — only the two
  * cells whose packed status changed do.
  *
- * Every decision lives in a pure, unit-tested helper (classifyKey / nextEditable /
- * reconcileActive / parseAccounting / sameCoord); this file is the wiring.
+ * Every decision lives in a pure, unit-tested helper (classifyKey / classifyBulkKey /
+ * nextEditable / reconcileSelection / parseAccounting / sameSelection); this file is
+ * the wiring.
  */
 
 import {
@@ -29,11 +31,10 @@ import {
 	type MoveDir,
 	modifierHeld,
 	nextEditable,
-	reconcileActive,
-	sameCoord,
 } from "./editing";
 import { createEditStore, type EditStore } from "./editStore";
 import { parseAccounting } from "./parse";
+import { classifyBulkKey, isMultiSelection, reconcileSelection, sameSelection } from "./selection";
 import type { CellEdit, CellValue, Column, GridMode, GridModel, LineRow, Row } from "./types";
 
 /** Stable empty list for `view` mode, so the reconcile effect never re-fires. */
@@ -102,9 +103,16 @@ function coordFromEvent(target: HTMLElement): EditCoord | null {
 export function useGridEditing(params: UseGridEditingParams): GridEditing | null {
 	const { model, mode, onEdit } = params;
 	const editMode = mode === "edit";
+	const bulkMode = mode === "bulk";
+	// `bulk` is a strict superset of `edit`: both share the editable-cell scan, the
+	// store, and the commit funnels; `bulkMode` alone gates the selection layer below.
+	const interactive = editMode || bulkMode;
 
 	// The editable-cell scan is skipped in view mode (a stable empty list).
-	const list = useMemo(() => (editMode ? buildEditableList(model) : NO_CELLS), [editMode, model]);
+	const list = useMemo(
+		() => (interactive ? buildEditableList(model) : NO_CELLS),
+		[interactive, model],
+	);
 
 	// Latest-value refs so every handler stays referentially stable yet never stale.
 	const modelRef = useRef(model);
@@ -150,10 +158,15 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 				store.dispatch({ type: "CANCEL" });
 			}
 		}
-		const current = store.getState().active;
-		const next = reconcileActive(list, current);
-		if (!sameCoord(current, next)) {
-			store.dispatch({ type: "SET_ACTIVE", coord: next });
+		// Keep BOTH selection corners valid after a model change. reconcileSelection
+		// preserves the rect only when both corners survive (a same-shape re-render keeps
+		// a pasted/filled block highlit), else collapses to the clamped active cell. In
+		// edit mode `anchor` is always null, so this reduces to Epic 5's single-cell clamp
+		// (RECONCILE with a null anchor == the old SET_ACTIVE).
+		const cur = store.getState();
+		const next = reconcileSelection(list, cur.active, cur.anchor);
+		if (!sameSelection(cur, next)) {
+			store.dispatch({ type: "RECONCILE", active: next.active, anchor: next.anchor });
 		}
 	}, [list, store]);
 
@@ -246,6 +259,43 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 			if (active === null) {
 				return;
 			}
+
+			// Bulk mode first: the selection gestures (extend / select-all / collapse).
+			// Anything classifyBulkKey doesn't claim — `{none}`, and the fill/clear intents
+			// wired in Stage 3b — falls through to the shared Epic 5 nav/edit handling below.
+			if (bulkMode) {
+				const multi = isMultiSelection(state.anchor, active);
+				const bulk = classifyBulkKey(e.key, e.shiftKey, e.ctrlKey, e.metaKey, multi);
+				switch (bulk.kind) {
+					case "extend": {
+						e.preventDefault();
+						const target = nextEditable(listRef.current, active, bulk.dir);
+						if (target !== null) {
+							focusIntentRef.current = true;
+							store.dispatch({ type: "EXTEND", coord: target });
+						}
+						// else: at an edge — swallow, keeping the current selection.
+						return;
+					}
+					case "selectAll": {
+						e.preventDefault();
+						const cells = listRef.current;
+						focusIntentRef.current = true; // the focus corner moves to the last cell
+						// active is non-null ⇒ the list is non-empty, so both extremes exist.
+						store.dispatch({
+							type: "SELECT_ALL",
+							anchor: cells[0] as EditCoord,
+							active: cells[cells.length - 1] as EditCoord,
+						});
+						return;
+					}
+					case "clearSelection":
+						e.preventDefault();
+						store.dispatch({ type: "CLEAR_SELECTION" });
+						return;
+				}
+			}
+
 			const mod = modifierHeld(e.ctrlKey, e.metaKey, e.altKey);
 			const intent = classifyKey(e.key, e.shiftKey, mod, false);
 			switch (intent.kind) {
@@ -274,7 +324,7 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 					return; // "none" — leave the key to the browser
 			}
 		},
-		[store, beginEdit, clearActive],
+		[store, beginEdit, clearActive, bulkMode],
 	);
 
 	const onClick = useCallback(
@@ -288,9 +338,16 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 				return;
 			}
 			focusIntentRef.current = false; // the native click already moved focus here
+			// Shift-click (bulk) extends from the fixed anchor to the clicked cell; a plain
+			// click lands + collapses the range. `coord` is always an editable cell (only
+			// EditableCells carry data-fs-row/col), so EXTEND's corners stay editable.
+			if (bulkMode && e.shiftKey) {
+				store.dispatch({ type: "EXTEND", coord });
+				return;
+			}
 			store.dispatch({ type: "SET_ACTIVE", coord });
 		},
-		[store],
+		[store, bulkMode],
 	);
 
 	const onDoubleClick = useCallback(
@@ -324,5 +381,5 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 		[store, onKeyDown, onClick, onDoubleClick, commitActive, blurActive, cancelActive],
 	);
 
-	return editMode ? controller : null;
+	return interactive ? controller : null;
 }

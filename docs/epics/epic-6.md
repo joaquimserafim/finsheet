@@ -284,12 +284,17 @@ All settled by the founder; folded into the locked decisions above.
 - [x] `editStore.ts`: `CELL_SELECTED=4` + `cellStatus` branch + cached rect (recomputed once per dispatch) + tests
 - [x] `types.ts`: `GridMode += "bulk"`; `BulkEdit`; exported `BulkEdit`/`RejectedCell`/`SkippedCell` from `index.ts`
 
-**Stage 3 — React wiring (happy-dom RTL):**
-- [ ] `useGridEditing.ts`: `bulkMode` gate; keydown tries `classifyBulkKey` first → falls through to Epic 5; `onClick` shift-extend; reconcile effect → `reconcileSelection`/`sameSelection` (preserve-rect vs collapse)
-- [ ] `useGridEditing.ts`: `onCopy/onCut/onPaste` over the pure helpers → `onBulkEdit` (**editor-guarded** — fix 1; **empty-suppressed** — fix 6); `onPointerDown/Move/Up` drag-select
-- [ ] `EditableCell.tsx`: import `rawCellText`; add `data-fs-selected` on `CELL_SELECTED`. `Grid.tsx`: `onBulkEdit` prop; bind clipboard/pointer handlers on the port (bulk only)
-- [ ] `styles.css`: `--fs-select-bg` token + `td[data-fs-selected]` band; `[data-fs-dragging] { user-select: none }`
-- [ ] happy-dom RTL suite: shift+arrow extent, `Cmd+D/R` fill, Delete range-clear, paste via mocked `clipboardData`, collapse, reconcile preserve-vs-collapse, **paste-into-open-editor bails**
+**Stage 3a — selection gestures, keyboard + band (happy-dom RTL):** ✅ **committed** (197 tests, 100% cov)
+- [x] `useGridEditing.ts`: `bulkMode`/`interactive` gate; keydown tries `classifyBulkKey` first (extend / select-all / collapse) → falls through to Epic 5 nav; `onClick` shift-extend
+- [x] `useGridEditing.ts`: reconcile effect → `reconcileSelection`/`sameSelection` (`RECONCILE`; preserve-rect vs collapse; edit mode reduces to the old single-cell clamp)
+- [x] `EditableCell.tsx`: `data-fs-selected` on `CELL_SELECTED`. `styles.css`: `--fs-select-bg` token + `td[data-fs-selected]` band. Playground: edit/bulk toggle
+- [x] happy-dom RTL suite `Grid.bulk.test.tsx`: shift+arrow extent (+ boundary), Cmd/Ctrl+A, shift-click, Escape collapse, plain-arrow fall-through, reconcile preserve-vs-collapse
+
+**Stage 3b — clipboard + fill + pointer, writes → `onBulkEdit` (happy-dom RTL):**
+- [ ] `useGridEditing.ts`: `onCopy/onCut/onPaste` over the pure helpers → `onBulkEdit` (**editor-guarded** — fix 1; **empty-suppressed** — fix 6)
+- [ ] `useGridEditing.ts`: fill (`Cmd/Ctrl+D`/`R`) + Delete-over-range clear → `onBulkEdit`; `onPointerDown/Move/Up` drag-select (+ `[data-fs-dragging] { user-select: none }`)
+- [ ] `EditableCell.tsx`: import `rawCellText`. `Grid.tsx`: `onBulkEdit` prop; bind clipboard/pointer handlers on the port (bulk only)
+- [ ] happy-dom RTL suite: `Cmd+D/R` fill, Delete range-clear, paste via mocked `clipboardData`, **paste-into-open-editor bails**
 
 **Stage 4 — browser + docs:**
 - [ ] `@vitest/browser` (Chromium): real clipboard round-trip to/from Excel TSV; focused-`<td>` receipt (fix 9); pointer drag-select; `Cmd+R/D` preventDefault; re-render-count assertions; `/* v8 ignore */` only `elementFromPoint` (fix 8). *(Also clears Epic 5's deferred browser suite.)*

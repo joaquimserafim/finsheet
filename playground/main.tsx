@@ -124,6 +124,7 @@ function Playground() {
 	const [model, setModel] = useState(pnl);
 	const [last, setLast] = useState<CellEdit | null>(null);
 	const [theme, setTheme] = useState<Theme>("auto");
+	const [mode, setMode] = useState<"edit" | "bulk">("edit");
 
 	// Keep the whole page's light/dark in step with the toggle (auto = follow the OS),
 	// so the grid never sits as a lone dark box on a light page (or vice-versa).
@@ -148,6 +149,27 @@ function Playground() {
 			<div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 8 }}>
 				<h1 style={{ margin: 0 }}>finsheet playground</h1>
 				<div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+					{(["edit", "bulk"] as const).map((m) => (
+						<button
+							key={m}
+							type="button"
+							onClick={() => setMode(m)}
+							aria-pressed={mode === m}
+							style={{
+								padding: "4px 10px",
+								fontSize: 13,
+								borderRadius: 6,
+								border: "1px solid #8884",
+								cursor: "pointer",
+								color: "inherit",
+								background: mode === m ? "#8883" : "transparent",
+								fontWeight: mode === m ? 600 : 400,
+							}}
+						>
+							{m}
+						</button>
+					))}
+					<span style={{ width: 8 }} />
 					{(["auto", "light", "dark"] as const).map((t) => (
 						<button
 							key={t}
@@ -171,13 +193,24 @@ function Playground() {
 				</div>
 			</div>
 			<p>
-				Edit mode — click or arrow to a numeric line cell, type to replace (or Enter/F2 to
-				edit in place), <kbd>Enter</kbd>/<kbd>Tab</kbd> to commit, <kbd>Esc</kbd> to cancel,
-				<kbd>Backspace</kbd> to clear. Subtotals, totals and the Δ column never edit.
+				{mode === "bulk" ? (
+					<>
+						Bulk mode — everything edit does, plus <kbd>Shift</kbd>+arrow / shift-click
+						to extend a range and <kbd>Cmd/Ctrl</kbd>+<kbd>A</kbd> to select all;{" "}
+						<kbd>Esc</kbd> collapses the selection. (Copy/paste + fill land next.)
+					</>
+				) : (
+					<>
+						Edit mode — click or arrow to a numeric line cell, type to replace (or
+						Enter/F2 to edit in place), <kbd>Enter</kbd>/<kbd>Tab</kbd> to commit,{" "}
+						<kbd>Esc</kbd> to cancel, <kbd>Backspace</kbd> to clear. Subtotals, totals
+						and the Δ column never edit.
+					</>
+				)}
 			</p>
 			<Grid
 				model={model}
-				mode="edit"
+				mode={mode}
 				onEdit={onEdit}
 				theme={theme === "auto" ? undefined : theme}
 				caption="Consolidated income statement (in thousands)"

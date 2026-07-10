@@ -8,7 +8,7 @@
 
 import { memo, useEffect, useRef, useSyncExternalStore } from "react";
 import { CellEditor } from "./CellEditor";
-import { CELL_ACTIVE, CELL_EDITING, CELL_IDLE, CELL_INVALID } from "./editStore";
+import { CELL_ACTIVE, CELL_EDITING, CELL_IDLE, CELL_INVALID, CELL_SELECTED } from "./editStore";
 import { cellPresentation } from "./internal";
 import type { CellValue, Column } from "./types";
 import type { GridEditing } from "./useGridEditing";
@@ -80,6 +80,7 @@ function EditableCellImpl({
 			data-align={align}
 			data-fs-row={rowIndex}
 			data-fs-col={colIndex}
+			data-fs-selected={status === CELL_SELECTED ? "true" : undefined}
 			aria-current={status === CELL_ACTIVE ? "true" : undefined}
 			tabIndex={status === CELL_ACTIVE ? 0 : -1}
 		>
