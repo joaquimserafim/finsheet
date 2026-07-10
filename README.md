@@ -16,8 +16,9 @@ Statements are *authored structure*, not aggregated data, so rows are a **discri
 (`section · line · subtotal · total · spacer`) and rendering is a `switch` on `kind`. Subtotals and
 totals are first-class row kinds, not a config flag.
 
-> **Status:** `v0.1.0` ships the **read-only** grid. Editing (`view` / `edit` / `bulk`) lands in
-> `v0.2.0`. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Status:** `v0.1.0` ships the **read-only** grid. `v0.2.0` adds **single-cell editing**
+> (`mode="edit"`); range select + paste (`bulk`) and virtualization follow. See
+> [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Requirements
 
@@ -63,6 +64,8 @@ export function IncomeStatement() {
 Negatives render in parentheses, `null`/absent cells as `–`, the trailing `total` pins to a sticky
 footer, and `columns[0]` is the sticky label column.
 
+More patterns in [examples/](examples/) — read-only, editable, balance sheet, and theming.
+
 ## The data model
 
 `GridModel` is `{ columns, rows }`. `columns[0]` is the **label column** (renders `row.label`);
@@ -86,10 +89,62 @@ label. See [src/types.ts](src/types.ts) for the full model.
 | --- | --- | --- | --- |
 | `model` | `GridModel` | — | **Required.** Controlled; the grid never mutates it. |
 | `defaultFormat` | `FormatOptions` | — | Statement-wide accounting format (e.g. `{ scale: "thousands" }`). |
+| `mode` | `"view" \| "edit"` | `"view"` | `"edit"` turns numeric `line` cells into an editing surface (pair with `onEdit`). |
+| `onEdit` | `(change: CellEdit) => void` | — | Fires on each committed edit. Apply it and pass a fresh `model` back. |
 | `stickyFooter` | `boolean` | `true` | Pin the trailing `total` to a sticky footer. `false` → inline, no footer. |
 | `caption` | `ReactNode` | — | Rendered as `<caption>`; supplies the table's accessible name. |
 | `className` / `id` | `string` | — | Applied to the scroll container. |
 | `aria-label` / `aria-labelledby` | `string` | — | Applied to the `<table>` when there's no caption. |
+
+## Editing (`mode="edit"`)
+
+`v0.2.0` adds single-cell editing. finsheet stays a **controlled component** — it never mutates
+`model`. On each valid commit it fires `onEdit`; you apply the change to your own data and pass a
+fresh `model` back:
+
+```tsx
+import { type CellEdit, Grid, type GridModel } from "finsheet"
+import { useState } from "react"
+
+function applyEdit(model: GridModel, change: CellEdit): GridModel {
+	return {
+		columns: model.columns,
+		rows: model.rows.map((row, i) =>
+			i === change.rowIndex && "values" in row
+				? { ...row, values: { ...row.values, [change.columnId]: change.value } }
+				: row,
+		),
+	}
+}
+
+export function EditableStatement({ initial }: { initial: GridModel }) {
+	const [model, setModel] = useState(initial)
+	return <Grid model={model} mode="edit" onEdit={(c) => setModel((m) => applyEdit(m, c))} />
+}
+```
+
+**Only `line` cells in numeric, unlocked columns edit.** Subtotals, totals, sections and the label
+column are never editable — guaranteed by row `kind`, not a runtime flag. Lock a single line with
+`editable: false` on the row, or a whole column (e.g. a computed variance) with `editable: false`
+on the `Column`.
+
+| Key | Focused (not editing) | Editing |
+| --- | --- | --- |
+| Arrows | move to the next **editable** cell | move the text caret |
+| Enter / F2 | start editing (keep the value) | commit + move down |
+| Tab / Shift+Tab | move right / left | commit + move right / left |
+| digit · `-` · `.` | start editing, replacing the value | — |
+| Backspace / Delete | clear the cell → commit `null` | delete a character |
+| Esc | — | cancel, keep the value |
+
+Navigation **skips non-editable cells**, so Tab and arrows land only where you can type. Editing
+reveals the **raw stored value** (unscaled), so a statement shown "in thousands" still edits the
+real number. `onEdit` receives `{ rowId?, rowIndex, columnId, value }` — `value` is a parsed
+`number`, or `null` when the cell was cleared. Full example:
+[examples/editable-statement.tsx](examples/editable-statement.tsx).
+
+> Range select + copy/paste (to and from a spreadsheet) and fill-down arrive with `bulk` mode; see
+> the [roadmap](docs/ROADMAP.md).
 
 ## Formatting
 
@@ -127,7 +182,7 @@ Light is the default; **dark follows the OS** (`prefers-color-scheme`) unless yo
 `data-theme="light" | "dark"` on the `.finsheet` element. Full token list at the top of
 [src/styles.css](src/styles.css).
 
-## Notes & limitations (v0.1.0)
+## Notes & limitations
 
 - **The grid owns its scroll.** Sticky positioning resolves against the built-in scroll container,
   which needs a bounded height (`--fs-max-block-size`, default `32rem`). Don't wrap the grid in your
@@ -137,7 +192,8 @@ Light is the default; **dark follows the OS** (`prefers-color-scheme`) unless yo
 - **Single formatter per grid.** A mixed-unit statement (a `% margin` column beside currency) needs
   per-column formatting — deferred to a later `Column.format`. Today all value cells use
   `formatAccounting` + `defaultFormat`.
-- **Read-only.** Editing modes arrive in `v0.2.0`.
+- **Editing is single-cell** (`v0.2.0`). One cell at a time; range select, copy/paste, and
+  fill-down (`bulk` mode), plus virtualization for long statements, are on the roadmap.
 
 ## Development
 

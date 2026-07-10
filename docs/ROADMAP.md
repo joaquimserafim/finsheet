@@ -111,21 +111,25 @@ Proves the render surface **and** the publish path on low-risk ground.
 ## Milestone `v0.2.0` — Editing
 
 ### Epic 5 — Single-cell editing + keyboard nav (`view` / `edit`)
-- [ ] `mode` prop + reducer
-- [ ] controlled `value` + `onEdit`; editable guard (totals/subtotals not editable)
-- [ ] active-cell state + roving tabindex
-- [ ] keyboard: arrows / Enter (commit + down) / Tab (right) / Esc (cancel) / type-to-edit
-- [ ] local uncontrolled input on active cell; commit on blur/Enter
-- [ ] interaction tests (user-event; consider `@vitest/browser`)
-- **Done when:** keyboard nav + single-cell edit works; one cell re-renders per keystroke.
+*Stages 1–2 committed (`9f0280c` pure core, `c2ca820` React layer); Stage 3 (browser suite + README) remaining.*
+- [x] `mode` prop + reducer
+- [x] controlled `value` + `onEdit`; editable guard (totals/subtotals not editable)
+- [x] active-cell state + roving tabindex
+- [x] keyboard: arrows / Enter (commit + down) / Tab (right) / Esc (cancel) / type-to-edit
+- [x] local uncontrolled input on active cell; commit on blur/Enter
+- [~] interaction tests — happy-dom RTL suite done (134 tests, 100% cov); `@vitest/browser` focus/blur/selection suite → **Stage 3**
+- [x] README editing docs (Editing section, `mode`/`onEdit` props, keyboard table, examples link)
+- **Done when:** keyboard nav + single-cell edit works; one cell re-renders per keystroke. — **met** (strict re-render-count assertion → Stage 3).
+- *Remaining to close Epic 5:* the `@vitest/browser` focus/blur/selection suite (CI-only; covers the one browser-only blur branch + real-focus fidelity).
 
-### Epic 6 — Bulk mode (`bulk`)
+### Epic 6 — Bulk mode (`bulk`) — "the spreadsheet"
+*The spreadsheet-in-the-browser surface: range editing + Excel/xlsx interop (the clipboard is TSV).*
 - [ ] range-selection model (anchor + focus, shift/drag)
-- [ ] clipboard paste (parse TSV into the range)
+- [ ] clipboard **paste** (parse TSV into the range) + **copy** (range → TSV, so figures round-trip to/from Excel)
 - [ ] fill-down / fill-right
 - [ ] respect editable guard across a range
 - [ ] interaction tests
-- **Done when:** paste a block and fill-down work against editable cells only.
+- **Done when:** paste a block from a spreadsheet and fill-down work against editable cells only; copy round-trips.
 
 ### Epic 7 — Performance hardening
 - [ ] memo boundaries (Row / Cell) + stable callbacks
@@ -136,6 +140,7 @@ Proves the render surface **and** the publish path on low-risk ground.
 
 ### Epic 8 — Docs & v0.2.0 release
 - [ ] editing + bulk usage docs
+- [ ] **visual polish pass** — level the default theme to the Simo design-system caliber (hairline rules, spacing, tabular figures, refined light/dark)
 - [ ] manual publish `v0.2.0`
 
 ---
