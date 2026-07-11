@@ -30,10 +30,13 @@ demand), never a gating regression baseline.
   git-ignored `__screenshots__/`); a wide `page.viewport(1000, 800)` avoids the default-viewport clip.
   **Proven end-to-end** with `income-statement-light.png`. Kept out of the default run + 100% gate
   (`screenshots/**` excluded); typechecks via `screenshots/vite-env.d.ts` + the tsconfig include.
-- [ ] **Config fixtures captured** — the documented config set, each a small fixture model → one PNG:
-  read-only P&L (light), the same (dark), `mode="edit"` with an active cell + focus ring, `mode="bulk"`
-  with a selection band, a balance sheet, a "shown in thousands" scale, and a `--fs-*` token-override
-  that demonstrates theming to a host app.
+- [x] **Config fixtures captured** — all 7 shots, each a small fixture model → one PNG in
+  `docs/screenshots/`: `income-statement-light`, `income-statement-dark` (`theme="dark"`), `edit-mode`
+  (`mode="edit"` + a driven `userEvent.click` → the focus ring), `bulk-selection` (`mode="bulk"` +
+  driven shift-arrow → a 2×2 selection band), `balance-sheet` (different structure + the pinned grand
+  total), `scaled-millions` (`scale: "millions"` + `precision: 1`), and `token-override` (a brand-neutral
+  "paper" `--fs-*` override). Each PNG was eyeballed. (The scale demo landed as *millions*, not a second
+  thousands shot, to avoid duplicating the flagship.)
 - [ ] **Gallery embed** — a README "Gallery" section (and/or `docs/gallery.md`) referencing every PNG,
   with the regeneration command documented so the images stay reproducible.
 
