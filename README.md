@@ -20,6 +20,8 @@ totals are first-class row kinds, not a config flag.
 > (`mode="edit"`) and **bulk mode** (`mode="bulk"` — range select + clipboard + fill); virtualization
 > follows. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
+📸 **[See the gallery →](docs/gallery.md)** — the grid across statement shapes, themes, editing, and formatting.
+
 ## Requirements
 
 - **Node.js ≥ 24**

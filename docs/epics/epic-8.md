@@ -37,8 +37,9 @@ demand), never a gating regression baseline.
   total), `scaled-millions` (`scale: "millions"` + `precision: 1`), and `token-override` (a brand-neutral
   "paper" `--fs-*` override). Each PNG was eyeballed. (The scale demo landed as *millions*, not a second
   thousands shot, to avoid duplicating the flagship.)
-- [ ] **Gallery embed** — a README "Gallery" section (and/or `docs/gallery.md`) referencing every PNG,
-  with the regeneration command documented so the images stay reproducible.
+- [x] **Gallery embed** — [`docs/gallery.md`](gallery.md) embeds all 7 PNGs (grouped: statements /
+  themes / editing) with captions + the `pnpm screenshots` regeneration command and a link to the
+  fixtures; the README links to it from a "Gallery" line under the status callout. **✅ Stage 1 complete.**
 
 ## Stage 2 — Docs truthing (v0.1.0 → v0.2.0)
 
