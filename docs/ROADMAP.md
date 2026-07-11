@@ -197,8 +197,9 @@ follow-up once the gallery makes the current look visible.*
 - [ ] gallery embed — README "Gallery" section (and/or `docs/gallery.md`) referencing every shot
 
 **Stage 2 — Docs truthing (v0.1.0 → v0.2.0)**
-- [ ] README truthing — status callout, the "virtualization follows" line → deferred, limitations (editing shipped)
+- [x] README truthing — status callout → `v0.2.0`, "virtualization follows" → deferred, limitations bullet, present-tense editing
 - [ ] examples audit — all five `examples/*.tsx` + index match the shipping API
+- [ ] CHANGELOG.md — Keep-a-Changelog with a `0.2.0` entry (+ back-filled `0.1.0`)
 
 **Stage 3 — Release prep (v0.2.0)**
 - [ ] version bump `0.1.0 → 0.2.0` — `package.json` + the `VERSION` constant in `src/index.ts`, in sync

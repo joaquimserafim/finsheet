@@ -16,9 +16,9 @@ Statements are *authored structure*, not aggregated data, so rows are a **discri
 (`section · line · subtotal · total · spacer`) and rendering is a `switch` on `kind`. Subtotals and
 totals are first-class row kinds, not a config flag.
 
-> **Status:** `v0.1.0` ships the **read-only** grid. `v0.2.0` adds **single-cell editing**
-> (`mode="edit"`) and **bulk mode** (`mode="bulk"` — range select + clipboard + fill); virtualization
-> follows. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Status:** `v0.2.0`. Renders **read-only** statements and edits them — single-cell editing
+> (`mode="edit"`) and **bulk mode** (`mode="bulk"` — range select + clipboard + fill). Row
+> virtualization is **deferred** (per-edit work is already O(1) in row count); see [docs/ROADMAP.md](docs/ROADMAP.md).
 
 📸 **[See the gallery →](docs/gallery.md)** — the grid across statement shapes, themes, editing, and formatting.
 
@@ -102,9 +102,9 @@ label. See [src/types.ts](src/types.ts) for the full model.
 
 ## Editing (`mode="edit"`)
 
-`v0.2.0` adds single-cell editing. finsheet stays a **controlled component** — it never mutates
-`model`. On each valid commit it fires `onEdit`; you apply the change to your own data and pass a
-fresh `model` back:
+In `edit` mode, finsheet supports single-cell editing while staying a **controlled component** — it
+never mutates `model`. On each valid commit it fires `onEdit`; you apply the change to your own data
+and pass a fresh `model` back:
 
 ```tsx
 import { type CellEdit, Grid, type GridModel } from "finsheet"
@@ -268,8 +268,10 @@ token list at the top of [src/styles.css](src/styles.css).
   per-column formatting — deferred to a later `Column.format`. Today all value cells use
   `formatAccounting` + `defaultFormat`.
 - **Editing writes editable cells only.** In `edit`/`bulk` only `line` cells in numeric, unlocked
-  columns accept input — enforced by row `kind`, not a runtime flag. Virtualization for very long
-  statements is still on the roadmap.
+  columns accept input — enforced by row `kind`, not a runtime flag.
+- **Row virtualization is deferred.** Per-edit work is already O(1) in row count (only the changed
+  cells re-render, never the whole grid); a windower would bound only initial mount for very large
+  statements — rare in authored statements. See the [roadmap](docs/ROADMAP.md) for the position.
 
 ## Development
 

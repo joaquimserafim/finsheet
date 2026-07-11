@@ -46,11 +46,14 @@ demand), never a gating regression baseline.
 The status blurbs were written for v0.1.0 (read-only). Editing + bulk shipped; virtualization is
 deferred (Epic 7). Make the docs describe the **shipping** surface.
 
-- [ ] **README truthing** — the status callout (v0.2.0 ships `edit` + `bulk`), the "virtualization
-  follows" line (→ **deferred**, per Epic 7), and the Notes & limitations section (editing has
-  *shipped* — it is no longer "on the roadmap"); sweep any remaining v0.1.0-era phrasing.
+- [x] **README truthing** — status callout now reads `v0.2.0` (renders + edits: `edit` + `bulk`); the
+  "virtualization follows" line → **deferred** (O(1) per-edit; only mount scales); the Notes &
+  limitations "still on the roadmap" line → a dedicated deferred-virtualization bullet; the Editing
+  section's `v0.2.0 adds` framing → present tense. No `v0.1.0` / "on the roadmap" phrasing left.
 - [ ] **Examples audit** — confirm all five `examples/*.tsx` + `examples/README.md` match the shipping
   API (they're CI-typechecked; verify they also represent the current feature set), fixing any drift.
+- [ ] **CHANGELOG.md** — introduce `CHANGELOG.md` (Keep-a-Changelog style) with a `0.2.0` entry
+  (editing + bulk + the gallery) and a back-filled `0.1.0` entry.
 
 ## Stage 3 — Release prep (v0.2.0)
 
