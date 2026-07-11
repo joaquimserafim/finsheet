@@ -68,10 +68,10 @@ deferred (Epic 7). Make the docs describe the **shipping** surface.
 - [x] **RELEASING.md v0.2.0 pass** — the tag/notes are now a `VERSION=v0.2.0` variable + v0.2.0 notes
   (drawn from `CHANGELOG.md`); the version-bump step now also requires a dated CHANGELOG entry; the
   local gate gained `pnpm test:browser`. No hardcoded `v0.1.0` tag left (only historical references).
-- [ ] **(maintainer) Publish** — full local gate green (`lint` / `typecheck` / `test:coverage` /
-  `test:browser` / `build` / `pnpm pack --dry-run`), then the manual act: `pnpm publish` +
-  `git tag v0.2.0` + `gh release create`. **Run by the maintainer**, gated on everything above; this
-  box flips when **`finsheet@0.2.0`** is live.
+- [x] **(maintainer) Publish** — full local gate verified green (lint · typecheck · **100% coverage**
+  597/597 stmts, 465/465 branches, 99/99 funcs, 570/570 lines · `test:browser` 5 · build · `pnpm pack`
+  = dist + LICENSE + package.json + README); the maintainer then ran `pnpm publish`, tagged `v0.2.0`,
+  and cut the GitHub release. **`finsheet@0.2.0` is live on npm** (published 2026-07-11). ✅
 
 ## Out of scope
 
@@ -122,3 +122,8 @@ the README; the docs truthfully describe the shipping v0.2.0 `edit` + `bulk` sur
 virtualization deferred (no stale v0.1.0 / "virtualization follows" claims); the version reads
 `0.2.0` in `package.json` and `src/index.ts` **in sync**; RELEASING.md covers v0.2.0; every gate is
 green; and the maintainer has published **`finsheet@0.2.0`**.
+
+**✅ Epic 8 COMPLETE** (2026-07-11) — Stage 1 (gallery: harness · 7 shots · gallery page + README link) ·
+Stage 2 (docs truthing: README · examples audit + the `theming.tsx` ancestor-override fix · CHANGELOG) ·
+Stage 3 (release: version bump in sync · RELEASING v0.2.0 pass · **`finsheet@0.2.0` published**). This
+closes the **v0.2.0 milestone**. Next up: the **v1.0.0** milestone (Epics 9–12).

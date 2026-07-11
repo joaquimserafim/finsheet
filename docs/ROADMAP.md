@@ -108,7 +108,7 @@ Proves the render surface **and** the publish path on low-risk ground.
 
 ---
 
-## Milestone `v0.2.0` — Editing
+## Milestone `v0.2.0` — Editing — ✅ shipped (`finsheet@0.2.0`, 2026-07-11)
 
 ### Epic 5 — Single-cell editing + keyboard nav (`view` / `edit`)
 *Functionally complete + shipped: Stage 1 pure core `9f0280c`, Stage 2 React layer `c2ca820`, Stage 3 README
@@ -204,11 +204,11 @@ follow-up once the gallery makes the current look visible.*
 **Stage 3 — Release prep (v0.2.0)**
 - [x] version bump `0.1.0 → 0.2.0` — `package.json` + the `VERSION` constant in `src/index.ts`, in sync
 - [x] RELEASING.md v0.2.0 pass — generalized tag/notes (`VERSION` var) + v0.2.0 notes; gate gains `test:browser` + CHANGELOG step
-- [ ] **(maintainer)** green-gate + `pnpm publish` v0.2.0 + tag + `gh release` — the manual act, gated on all above
+- [x] **(maintainer)** green-gate + `pnpm publish` v0.2.0 + tag + `gh release` — **`finsheet@0.2.0` live** (2026-07-11)
 
 **Done when:** a committed screenshot gallery across configs (embedded in the README); docs describe the
 shipping `edit`/`bulk` surface (virtualization deferred); version `0.2.0` in sync; RELEASING.md covers
-v0.2.0; gates green; **`finsheet@0.2.0`** published.
+v0.2.0; gates green; **`finsheet@0.2.0`** published. — **✅ Epic 8 COMPLETE (2026-07-11); v0.2.0 shipped.**
 
 ---
 
