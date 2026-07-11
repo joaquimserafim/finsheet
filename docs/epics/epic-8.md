@@ -62,9 +62,9 @@ deferred (Epic 7). Make the docs describe the **shipping** surface.
 
 ## Stage 3 — Release prep (v0.2.0)
 
-- [ ] **Version bump** — `0.1.0 → 0.2.0` in `package.json` **and** the `VERSION` constant in
-  [src/index.ts](../../src/index.ts); verify they **match** (drift between the two is the classic
-  release footgun the RELEASING.md checklist calls out).
+- [x] **Version bump** — `0.2.0` in `package.json` **and** the `VERSION` constant in
+  [src/index.ts](../../src/index.ts), **in sync** (`index.test.ts` is version-agnostic; 227 tests
+  green). Also refreshed index.ts's module doc (was "read-only" only) to name the `edit` / `bulk` modes.
 - [ ] **RELEASING.md v0.2.0 pass** — generalize the v0.1.0-hardcoded release notes + `git tag v0.1.0`,
   and add the v0.2.0 release-notes text (editing + bulk + the screenshot gallery).
 - [ ] **(maintainer) Publish** — full local gate green (`lint` / `typecheck` / `test:coverage` /

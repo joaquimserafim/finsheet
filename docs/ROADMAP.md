@@ -202,7 +202,7 @@ follow-up once the gallery makes the current look visible.*
 - [x] CHANGELOG.md — Keep a Changelog with a `0.2.0` entry (+ back-filled `0.1.0`, `2026-07-09`)
 
 **Stage 3 — Release prep (v0.2.0)**
-- [ ] version bump `0.1.0 → 0.2.0` — `package.json` + the `VERSION` constant in `src/index.ts`, in sync
+- [x] version bump `0.1.0 → 0.2.0` — `package.json` + the `VERSION` constant in `src/index.ts`, in sync
 - [ ] RELEASING.md v0.2.0 pass — generalize the v0.1.0-hardcoded notes/tag + add v0.2.0 release notes
 - [ ] **(maintainer)** green-gate + `pnpm publish` v0.2.0 + tag + `gh release` — the manual act, gated on all above
 
