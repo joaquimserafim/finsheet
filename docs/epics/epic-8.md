@@ -50,8 +50,12 @@ deferred (Epic 7). Make the docs describe the **shipping** surface.
   "virtualization follows" line → **deferred** (O(1) per-edit; only mount scales); the Notes &
   limitations "still on the roadmap" line → a dedicated deferred-virtualization bullet; the Editing
   section's `v0.2.0 adds` framing → present tense. No `v0.1.0` / "on the roadmap" phrasing left.
-- [ ] **Examples audit** — confirm all five `examples/*.tsx` + `examples/README.md` match the shipping
-  API (they're CI-typechecked; verify they also represent the current feature set), fixing any drift.
+- [x] **Examples audit** — all five `examples/*.tsx` + the index verified against the shipping API.
+  Found + fixed a **real bug** in `theming.tsx`: it set `--fs-*` on an **ancestor** `<div>`, which
+  `:where(.finsheet)`'s own token declarations **shadow** (verified live in the browser harness — the
+  header stayed the default grey, not teal). Rewrote it to the supported on-`.finsheet` pattern
+  (`.finsheet.teal { … }` + `className`, proven teal) and corrected the JSDoc. The other four examples +
+  `examples/README.md` were accurate.
 - [ ] **CHANGELOG.md** — introduce `CHANGELOG.md` (Keep-a-Changelog style) with a `0.2.0` entry
   (editing + bulk + the gallery) and a back-filled `0.1.0` entry.
 

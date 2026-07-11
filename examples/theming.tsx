@@ -1,15 +1,17 @@
 import { Grid, type GridModel } from "finsheet";
-import type { CSSProperties } from "react";
 
 // import "finsheet/styles.css";
 
 /**
- * Theming is a flat `--fs-*` custom-property set scoped to `.finsheet` at specificity 0
- * (via `:where`), so your own value always wins — and custom properties inherit, so you
- * can set them on any ancestor. Dark mode follows the OS automatically; to force a theme
- * regardless of the OS, set `data-theme="light" | "dark"` on the `.finsheet` element.
+ * Theming is a flat `--fs-*` custom-property set. finsheet declares its defaults directly on the
+ * `.finsheet` element (at zero specificity, via `:where`), so you override them with a rule that
+ * ALSO targets `.finsheet` — `.finsheet { --fs-bg: … }` for every grid on the page, or a scoped
+ * `.finsheet.my-theme { … }` plus a `className`, as below. Setting the tokens on an ANCESTOR does
+ * NOT work: finsheet's own `.finsheet` declaration shadows the inherited value.
  *
- * `defaultFormat` threads a statement-wide scale/precision to every value cell.
+ * Dark mode follows the OS automatically; to force a theme regardless of the OS, pass the `theme`
+ * prop (or set `data-theme="light" | "dark"` on the `.finsheet` element). `defaultFormat` threads a
+ * statement-wide scale/precision to every value cell.
  */
 const model: GridModel = {
 	columns: [
@@ -30,22 +32,27 @@ const model: GridModel = {
 	],
 };
 
-// Override any token — here a teal header band and a matching double "bottom line".
-const teal: CSSProperties = {
-	"--fs-head-bg": "#0f766e",
-	"--fs-head-fg": "#ecfeff",
-	"--fs-border": "#5eead4",
-	"--fs-total-border-bottom": "3px double #0f766e",
-} as CSSProperties;
+// In a real app this rule lives in your own stylesheet, next to `import "finsheet/styles.css"`.
+// Inlined here as a <style> so the example stays self-contained: a teal header band and a matching
+// double "bottom line". The `.teal` class is added to `.finsheet` via the Grid's `className`.
+const themeCss = `
+.finsheet.teal {
+	--fs-head-bg: #0f766e;
+	--fs-head-fg: #ecfeff;
+	--fs-border: #5eead4;
+	--fs-total-border-bottom: 3px double #0f766e;
+}`;
 
 export default function ThemedStatement() {
 	return (
-		<div style={teal}>
+		<>
+			<style>{themeCss}</style>
 			<Grid
 				model={model}
+				className="teal"
 				defaultFormat={{ scale: "thousands" }}
 				caption="Shown in thousands"
 			/>
-		</div>
+		</>
 	);
 }
