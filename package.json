@@ -46,6 +46,7 @@
 		"test:run": "vitest run",
 		"test:coverage": "vitest run --coverage",
 		"test:browser": "vitest run -c vitest.browser.config.ts",
+		"bench": "vitest run -c vitest.bench.config.ts",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",

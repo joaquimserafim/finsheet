@@ -22,8 +22,10 @@
 	"include": [
 		"src",
 		"examples",
+		"bench",
 		"vite.config.ts",
 		"vitest.config.ts",
+		"vitest.bench.config.ts",
 		"vitest.setup.ts",
 		"tsup.config.ts"
 	]

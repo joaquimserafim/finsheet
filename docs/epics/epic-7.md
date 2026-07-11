@@ -61,27 +61,25 @@ code by the design panel.)
 
 ## Stage 2 — Measure: pin the invariant + bench + perf profile
 
-Turn the loose done-when into exact, **gate-enforced**, documented numbers.
+Turn the loose done-when into exact, **gate-enforced**, documented numbers. ✅ **committed.**
 
-- [ ] **Store `cellStatus`-delta assertions (the primary, in-gate proof)** — extend
-  [editStore.test.ts](../../src/editStore.test.ts): after `SET_ACTIVE A→B`, `EXTEND`,
-  `START_EDIT`, and `COMMIT`+move, assert `store.cellStatus` changes by `Object.is` for
-  **exactly** the affected coords and is stable for every other coord. Because
-  `useSyncExternalStore` re-renders iff the snapshot changed, this is the deterministic,
-  layout-free encoding of "N cells re-render" — and it runs inside the 100% happy-dom gate.
-- [ ] **N×M bench harness (outside `src/`, non-gating)** — add `bench/grid-bench.tsx` + a
-  `pnpm bench` script, **not** under `src/` (the coverage include is `src/**/*.{ts,tsx}`, so it
-  must live in `bench/` to stay out of the 100% gate *and* the shipped bundle — the same
-  quarantine as the browser config). Mount 50 / 500 / 2000 rows × M cols under a React
-  `<Profiler>`; record mount time and confirm a move/keystroke produces O(1) commits
-  **independent of row count** (Grid = 0, cells = 1–2). Wall-clock is explicitly non-gating
-  (flaky in CI) — run manually.
-- [ ] **Documented perf profile (in this doc)** — write the exact **default-path** (virtualize
-  off) per-gesture re-render counts and the bench numbers (see *Perf profile* below), plus the
-  consumer-guidance note on preserving unchanged-row identity.
-- [ ] *(optional)* **happy-dom `Grid` render-count guard** — a `Probed` wrapper counting `Grid`
-  body executions under `fireEvent`. Marked optional: the browser suite already asserts
-  Grid-never-re-renders live; build this only if an in-gate restatement is wanted.
+- [x] **Store `cellStatus`-delta assertions (the primary, in-gate proof)** —
+  [editStore.test.ts](../../src/editStore.test.ts) grew a `reRendered(store, probe, act)` helper
+  (the coords whose packed `cellStatus` changed across a dispatch = exactly the cells
+  `useSyncExternalStore` re-renders) + 6 tests asserting the exact deltas: move = `[A,B]`,
+  open-editor = `[A]`, commit+move = `[A,B]`, shift-extend = `[A,B]`, band-grow re-renders **only
+  the delta** `[B,C,D]` (the anchor stays `SELECTED`), and a **600-cell** move re-renders exactly
+  2 — O(1) in N. Deterministic, layout-free, in the 100% gate.
+- [x] **N×M bench harness (outside `src/`, non-gating)** — [bench/grid-bench.tsx](../../bench/grid-bench.tsx)
+  + `vitest.bench.config.ts` + `pnpm bench` (quarantined from the coverage include + bundle, like
+  the browser config). Mounts 50 / 500 / 2000 rows under a `<Profiler>`; logs mount ms and
+  **asserts** one commit per move regardless of N (see *Perf profile*).
+- [x] **Documented perf profile (in this doc)** — the default-path per-gesture counts + the bench
+  numbers + the consumer-guidance note (see *Perf profile* below).
+- [x] **happy-dom `Grid` render-count guard** — [Grid.perf.test.tsx](../../src/Grid.perf.test.tsx):
+  a `Probed` wrapper asserts `Grid` re-renders **0 times** across move / open-editor / **editor
+  keystroke** (the case the store test can't see — typing dispatches nothing) / commit / extend.
+  Ported the browser-only counter into the gate. *(227 unit tests, 100% coverage.)*
 
 ## Stage 3 — Record the virtualization decision (the one founder gate)
 
@@ -108,6 +106,20 @@ never O(N), never `Grid`"**:
 `Grid` is **0 on every gesture** — the invariant Epic 7 locks. (A committed edit re-renders the
 one `GridRow` whose `row` object identity the consumer replaced — a *commit-time*, not
 keystroke-time, cost.)
+
+**Scaling** (`pnpm bench`, `edit` mode, 6 value columns — mount ms is indicative only: happy-dom
+has no layout engine, so absolute timing is not browser-real; the **commits/move** column is the
+deterministic, asserted fact):
+
+| rows | mount (indicative) | commits / move |
+| --- | --- | --- |
+| 50 | ~45 ms | **1** |
+| 500 | ~178 ms | **1** |
+| 2000 | ~447 ms | **1** |
+
+Mount is **O(N)** (every row mounts — the ceiling a windower would lower); a move is a **flat one
+commit** independent of N (the two changed cells, batched). This is the whole case for Epic 7's
+decision: editing is already O(1), so virtualization would buy only the mount/DOM-node column.
 
 > **Consumer note.** Preserve the identity of **unchanged** row objects when you apply an
 > `onEdit` / `onBulkEdit` back into your model, so the `GridRow` memo can skip them. A naive

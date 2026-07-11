@@ -174,10 +174,10 @@ panel (both adversarial verifiers HOLD).*
 - [x] colgroup-driven widths — no per-cell inline style objects **on value cells** (the label `<th>` keeps an intentional `--fs-depth` CSS-var for arbitrary-depth `calc()` indentation)
 - [x] `GridCell` deliberately non-memo'd (off the keystroke path); per-cell `useSyncExternalStore` seam re-renders only changed cells, never `Grid`
 
-**Stage 2 — Measure:**
-- [ ] store `cellStatus`-delta assertions — in-gate proof of exact per-gesture re-render counts
-- [ ] N×M `<Profiler>` bench in `bench/` (outside the 100% gate + shipped bundle); `pnpm bench`
-- [ ] documented perf profile (per-gesture counts; O(1) cells — 0/1/2 — never O(N), never `Grid`)
+**Stage 2 — Measure:** ✅ committed
+- [x] store `cellStatus`-delta assertions + a happy-dom `Grid` render-count guard — in-gate proof of the exact per-gesture counts (move=2 · open=1 · keystroke=0 · commit=2 · Grid=0), incl. a 600-cell move = 2 (O(1) in N)
+- [x] N×M `<Profiler>` bench in `bench/` (outside the 100% gate + shipped bundle); `pnpm bench` — mount O(N) (~45/178/447 ms at 50/500/2000 rows), **1 commit/move flat**
+- [x] documented perf profile in [epic-7.md](epics/epic-7.md) (per-gesture counts + bench; O(1) cells — 0/1/2 — never O(N), never `Grid`)
 
 **Stage 3 — Decision (founder gate):**
 - [ ] resolve virtualization in writing — ship an opt-in `virtualize` prop, or **defer** behind a documented ~150-row threshold (recommended: defer — per-edit work is already O(1) and the structure is already virtualization-ready, so deferral is reversible at zero structural cost)
