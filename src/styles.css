@@ -245,6 +245,12 @@
 	background: var(--fs-select-bg);
 }
 
+/* While a pointer drag-select is in flight, suppress the browser's text selection so
+   the drag paints a range instead of highlighting the cells' digits. */
+.finsheet[data-fs-dragging] {
+	user-select: none;
+}
+
 /* The editor input fills the cell and inherits its typography + alignment, so the
    digits don't jump between the read (formatted) and edit (raw) states. */
 .finsheet-cell-input {

@@ -145,11 +145,12 @@ per-stage deliverables** — each box flips only when its commit lands (never "h
 - [x] `EditableCell` `data-fs-selected` + `--fs-select-bg` band CSS; playground edit/bulk toggle
 - [x] happy-dom RTL selection suite (12 tests)
 
-**Stage 3b — clipboard + fill + pointer (writes → `onBulkEdit`):**
-- [ ] `onCopy`/`onCut`/`onPaste` over the pure helpers → `onBulkEdit` (editor-guarded — fix 1; empty-suppressed — fix 6)
-- [ ] fill (`Cmd/Ctrl+D`/`R`) + Delete-over-range clear → `onBulkEdit`
-- [ ] `onPointerDown`/`Move`/`Up` drag-select · `Grid` `onBulkEdit` prop + port bindings
-- [ ] happy-dom RTL suite (mocked `clipboardData`/pointer; paste-into-open-editor bails)
+**Stage 3b — clipboard + fill + pointer (writes → `onBulkEdit`):** ✅ committed
+- [x] `onCopy`/`onCut`/`onPaste` over the pure helpers → `onBulkEdit` (editor-guarded; empty-suppressed)
+- [x] fill (`Cmd/Ctrl+D`/`R`) + Delete-over-range clear → `onBulkEdit` (single-cell Delete still `onEdit`)
+- [x] `onPointerDown`/`Move`/`Up` drag-select (+ `[data-fs-dragging]` user-select guard) · `Grid` `onBulkEdit` prop + port bindings
+- [x] `EditableCell` reveal shares `rawCellText` (duplicate killed); playground applies bulk ops
+- [x] happy-dom RTL suite (mocked `clipboardData`/pointer; paste-into-open-editor bails) — 219 tests, 100% cov
 
 **Stage 4 — browser + docs:**
 - [ ] `@vitest/browser` real clipboard/pointer suite (also closes Epic 5's deferred browser suite)

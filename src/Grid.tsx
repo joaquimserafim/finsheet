@@ -3,7 +3,7 @@ import type { FormatOptions } from "./format";
 import { formatAccounting } from "./format";
 import { GridRow } from "./GridRow";
 import { cellPresentation, colWidth } from "./internal";
-import type { CellEdit, CellValue, GridMode, GridModel, Row } from "./types";
+import type { BulkEdit, CellEdit, CellValue, GridMode, GridModel, Row } from "./types";
 import { useGridEditing } from "./useGridEditing";
 
 export interface GridProps {
@@ -24,14 +24,22 @@ export interface GridProps {
 	/**
 	 * `"view"` (default) is the read-only v0.1.0 surface, byte-for-byte unchanged.
 	 * `"edit"` makes numeric `line` cells a keyboard-navigable editing surface —
-	 * pair it with {@link GridProps.onEdit}.
+	 * pair it with {@link GridProps.onEdit}. `"bulk"` is a strict superset of `"edit"`
+	 * that adds range selection, clipboard copy/paste, fill and range-clear — pair it
+	 * with {@link GridProps.onBulkEdit} (single-cell edits still fire {@link GridProps.onEdit}).
 	 */
 	readonly mode?: GridMode;
 	/**
-	 * Fires on each committed cell edit in `edit` mode. The grid never mutates
-	 * `model`: apply the {@link CellEdit} to your own data and pass a fresh `model`.
+	 * Fires on each committed single-cell edit in `edit`/`bulk` mode. The grid never
+	 * mutates `model`: apply the {@link CellEdit} to your own data and pass a fresh `model`.
 	 */
 	readonly onEdit?: (change: CellEdit) => void;
+	/**
+	 * Fires once per bulk operation in `bulk` mode — a paste, cut, fill or range-clear.
+	 * The grid stays controlled: apply every `edit` in the {@link BulkEdit} to your own
+	 * data and pass back one fresh `model` (one re-render, one undo step).
+	 */
+	readonly onBulkEdit?: (change: BulkEdit) => void;
 	/** Rendered as a `<caption>`; supplies the table's accessible name. */
 	readonly caption?: ReactNode;
 	/**
@@ -75,6 +83,7 @@ export function Grid({
 	stickyFooter = true,
 	mode = "view",
 	onEdit,
+	onBulkEdit,
 	caption,
 	theme,
 	className,
@@ -87,7 +96,10 @@ export function Grid({
 
 	// The editing controller — `null` in view mode (and Grid renders exactly as
 	// v0.1.0). Never re-renders Grid itself: cells subscribe to it directly.
-	const editing = useGridEditing({ model, mode, onEdit });
+	const editing = useGridEditing({ model, mode, onEdit, onBulkEdit });
+	// The bulk-only surface: clipboard + pointer range-select are wired only in bulk
+	// mode (null otherwise), so `edit` stays exactly the Epic 5 single-cell surface.
+	const bulkEditing = mode === "bulk" ? editing : null;
 
 	// A referentially-stable bound formatter: keyed on the PRIMITIVE option fields,
 	// not object identity, so an inline `defaultFormat={{…}}` doesn't defeat the
@@ -133,6 +145,12 @@ export function Grid({
 			onKeyDown={editing?.onKeyDown}
 			onClick={editing?.onClick}
 			onDoubleClick={editing?.onDoubleClick}
+			onCopy={bulkEditing?.onCopy}
+			onCut={bulkEditing?.onCut}
+			onPaste={bulkEditing?.onPaste}
+			onPointerDown={bulkEditing?.onPointerDown}
+			onPointerMove={bulkEditing?.onPointerMove}
+			onPointerUp={bulkEditing?.onPointerUp}
 		>
 			<table
 				className="finsheet-table"

@@ -290,14 +290,16 @@ All settled by the founder; folded into the locked decisions above.
 - [x] `EditableCell.tsx`: `data-fs-selected` on `CELL_SELECTED`. `styles.css`: `--fs-select-bg` token + `td[data-fs-selected]` band. Playground: edit/bulk toggle
 - [x] happy-dom RTL suite `Grid.bulk.test.tsx`: shift+arrow extent (+ boundary), Cmd/Ctrl+A, shift-click, Escape collapse, plain-arrow fall-through, reconcile preserve-vs-collapse
 
-**Stage 3b — clipboard + fill + pointer, writes → `onBulkEdit` (happy-dom RTL):**
-- [ ] `useGridEditing.ts`: `onCopy/onCut/onPaste` over the pure helpers → `onBulkEdit` (**editor-guarded** — fix 1; **empty-suppressed** — fix 6)
-- [ ] `useGridEditing.ts`: fill (`Cmd/Ctrl+D`/`R`) + Delete-over-range clear → `onBulkEdit`; `onPointerDown/Move/Up` drag-select (+ `[data-fs-dragging] { user-select: none }`)
-- [ ] `EditableCell.tsx`: import `rawCellText`. `Grid.tsx`: `onBulkEdit` prop; bind clipboard/pointer handlers on the port (bulk only)
-- [ ] happy-dom RTL suite: `Cmd+D/R` fill, Delete range-clear, paste via mocked `clipboardData`, **paste-into-open-editor bails**
+**Stage 3b — clipboard + fill + pointer, writes → `onBulkEdit` (happy-dom RTL):** ✅ **committed** (219 tests, 100% cov)
+- [x] `useGridEditing.ts`: `onCopy/onCut/onPaste` over the pure helpers → `onBulkEdit` (**editor-guarded**: an open `.finsheet-cell-input` keeps them, no `preventDefault`; **empty-suppressed** via a single `emitBulk` funnel — its one `?.` is the only nullish branch)
+- [x] `useGridEditing.ts`: fill (`Cmd/Ctrl+D`/`R`) + Delete-over-range clear → `onBulkEdit`; single-cell Delete still falls through to Epic 5 `onEdit`; `onPointerDown/Move/Up` drag-select (+ `[data-fs-dragging] { user-select: none }`)
+- [x] `EditableCell.tsx`: reveal shares `rawCellText` (local `rawEditValue` duplicate removed). `Grid.tsx`: `onBulkEdit` prop; clipboard/pointer handlers bound on the port only in bulk (`bulkEditing = mode === "bulk" ? editing : null`)
+- [x] happy-dom RTL suite: copy TSV, paste (positional / broadcast / atomic-reject / skip / no-op / empty), cut+clear, `Cmd+D/R` fill, Delete range-clear, pointer drag, **paste-into-open-editor bails**, no-handler no-throw
+
+*As-built deviations from the plan:* pointer drag uses **no capture** — `onPointerMove` reads the cell under the cursor from `e.target` (`coordFromEvent`), so the whole path is happy-dom-coverable and there is **no `elementFromPoint`** (fix 8 is moot). Paste always emits `rejected`/`skipped` as arrays (empty when none), not conditionally omitted. `Cmd+D/R` `preventDefault` fires but its browser effect (no bookmark / reload) is only observable in Stage 4.
 
 **Stage 4 — browser + docs:**
-- [ ] `@vitest/browser` (Chromium): real clipboard round-trip to/from Excel TSV; focused-`<td>` receipt (fix 9); pointer drag-select; `Cmd+R/D` preventDefault; re-render-count assertions; `/* v8 ignore */` only `elementFromPoint` (fix 8). *(Also clears Epic 5's deferred browser suite.)*
+- [ ] `@vitest/browser` (Chromium): real clipboard round-trip to/from Excel TSV; focused-`<td>` receipt (fix 9); pointer drag-select over real coordinates; `Cmd+R/D` preventDefault; re-render-count assertions. *(Also clears Epic 5's deferred browser suite.)*
 - [ ] README: bulk-mode section (`mode`, `onBulkEdit`/`BulkEdit`, keyboard table, copy/paste/fill, editable-guard behaviour, raw-units note)
 - [ ] `docs/epics/epic-6.md`: fold in as-built notes + resolved gates
 

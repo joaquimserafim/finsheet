@@ -1,4 +1,4 @@
-import { type CellEdit, Grid, type GridModel } from "finsheet";
+import { type BulkEdit, type CellEdit, Grid, type GridModel } from "finsheet";
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../src/styles.css";
@@ -123,6 +123,7 @@ const pnl: GridModel = {
 function Playground() {
 	const [model, setModel] = useState(pnl);
 	const [last, setLast] = useState<CellEdit | null>(null);
+	const [lastBulk, setLastBulk] = useState<BulkEdit | null>(null);
 	const [theme, setTheme] = useState<Theme>("auto");
 	const [mode, setMode] = useState<"edit" | "bulk">("edit");
 
@@ -141,6 +142,38 @@ function Playground() {
 					? { ...row, values: { ...row.values, [change.columnId]: change.value } }
 					: row,
 			),
+		}));
+	};
+
+	// One bulk op (paste / cut / fill / range-clear) → one re-render, one undo step:
+	// apply every edit in the op against a single fresh model.
+	const onBulkEdit = (change: BulkEdit) => {
+		setLastBulk(change);
+		if (change.edits.length === 0) {
+			return;
+		}
+		const byRow = new Map<number, CellEdit[]>();
+		for (const edit of change.edits) {
+			const list = byRow.get(edit.rowIndex);
+			if (list === undefined) {
+				byRow.set(edit.rowIndex, [edit]);
+			} else {
+				list.push(edit);
+			}
+		}
+		setModel((prev) => ({
+			columns: prev.columns,
+			rows: prev.rows.map((row, i) => {
+				const edits = byRow.get(i);
+				if (edits === undefined || !("values" in row)) {
+					return row;
+				}
+				const values = { ...row.values };
+				for (const edit of edits) {
+					values[edit.columnId] = edit.value;
+				}
+				return { ...row, values };
+			}),
 		}));
 	};
 
@@ -196,8 +229,11 @@ function Playground() {
 				{mode === "bulk" ? (
 					<>
 						Bulk mode — everything edit does, plus <kbd>Shift</kbd>+arrow / shift-click
-						to extend a range and <kbd>Cmd/Ctrl</kbd>+<kbd>A</kbd> to select all;{" "}
-						<kbd>Esc</kbd> collapses the selection. (Copy/paste + fill land next.)
+						/ drag to select a range and <kbd>Cmd/Ctrl</kbd>+<kbd>A</kbd> to select all.
+						On a range: <kbd>Cmd/Ctrl</kbd>+<kbd>C</kbd>/<kbd>X</kbd>/<kbd>V</kbd> copy
+						/ cut / paste (Excel-compatible TSV), <kbd>Cmd/Ctrl</kbd>+<kbd>D</kbd>/
+						<kbd>R</kbd> fill down / right, <kbd>Delete</kbd> clears, <kbd>Esc</kbd>{" "}
+						collapses.
 					</>
 				) : (
 					<>
@@ -212,12 +248,19 @@ function Playground() {
 				model={model}
 				mode={mode}
 				onEdit={onEdit}
+				onBulkEdit={onBulkEdit}
 				theme={theme === "auto" ? undefined : theme}
 				caption="Consolidated income statement (in thousands)"
 			/>
 			<p style={{ color: "#6b7280", fontVariantNumeric: "tabular-nums" }}>
 				last commit:{" "}
 				{last ? `rows[${last.rowIndex}].${last.columnId} = ${last.value ?? "—"}` : "—"}
+				{mode === "bulk" ? (
+					<>
+						{" · "}last bulk op:{" "}
+						{lastBulk ? `${lastBulk.kind} (${lastBulk.edits.length} cells)` : "—"}
+					</>
+				) : null}
 			</p>
 		</main>
 	);

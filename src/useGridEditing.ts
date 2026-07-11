@@ -5,25 +5,33 @@
  *
  * It owns: the editable-cell list (skipped entirely in `view` mode), the edit
  * {@link EditStore} (created once), a `focusIntentRef` that gates who may claim DOM
- * focus, an `editSeedRef` carrying the char that opened the editor, the container's
- * delegated keyboard/pointer handlers, and the commit/cancel/blur funnels the
- * editor input calls. `Grid` itself never re-renders on an edit — only the two
- * cells whose packed status changed do.
+ * focus, an `editSeedRef` carrying the char that opened the editor, a `draggingRef`
+ * arming pointer range-select, the container's delegated keyboard/pointer/clipboard
+ * handlers, and the commit/cancel/blur funnels the editor input calls. `Grid` itself
+ * never re-renders on an edit — only the cells whose packed status changed do.
+ *
+ * `edit` emits single-cell commits through `onEdit`; `bulk` adds the write gestures —
+ * clipboard paste/cut, fill-down/right, and range-clear — each emitted as ONE
+ * {@link BulkEdit} through `onBulkEdit` (copy writes only the system clipboard).
  *
  * Every decision lives in a pure, unit-tested helper (classifyKey / classifyBulkKey /
- * nextEditable / reconcileSelection / parseAccounting / sameSelection); this file is
- * the wiring.
+ * nextEditable / reconcileSelection / parseAccounting / sameSelection; and the write
+ * planners computeCopy / computePastePatches / computeFillPatches / computeClearPatches);
+ * this file is the wiring.
  */
 
 import {
+	type ClipboardEvent as ReactClipboardEvent,
 	type KeyboardEvent as ReactKeyboardEvent,
 	type MouseEvent as ReactMouseEvent,
+	type PointerEvent as ReactPointerEvent,
 	type RefObject,
 	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
 } from "react";
+import { computeCopy, computePastePatches, parseClipboard, serializeClipboard } from "./clipboard";
 import {
 	buildEditableList,
 	classifyKey,
@@ -31,11 +39,29 @@ import {
 	type MoveDir,
 	modifierHeld,
 	nextEditable,
+	sameCoord,
 } from "./editing";
 import { createEditStore, type EditStore } from "./editStore";
+import { computeClearPatches, computeFillPatches } from "./fill";
 import { parseAccounting } from "./parse";
-import { classifyBulkKey, isMultiSelection, reconcileSelection, sameSelection } from "./selection";
-import type { CellEdit, CellValue, Column, GridMode, GridModel, LineRow, Row } from "./types";
+import {
+	classifyBulkKey,
+	isMultiSelection,
+	reconcileSelection,
+	type SelectionRect,
+	sameSelection,
+	selectionRect,
+} from "./selection";
+import type {
+	BulkEdit,
+	CellEdit,
+	CellValue,
+	Column,
+	GridMode,
+	GridModel,
+	LineRow,
+	Row,
+} from "./types";
 
 /** Stable empty list for `view` mode, so the reconcile effect never re-fires. */
 const NO_CELLS: readonly EditCoord[] = [];
@@ -52,6 +78,18 @@ export interface GridEditing {
 	onKeyDown: (e: ReactKeyboardEvent) => void;
 	onClick: (e: ReactMouseEvent) => void;
 	onDoubleClick: (e: ReactMouseEvent) => void;
+	/** Bulk-only clipboard handlers (wired by `Grid` only in `bulk` mode). Copy/cut
+	 *  serialise the selection rectangle to the system clipboard as raw TSV; cut and
+	 *  paste additionally emit a {@link BulkEdit}. An open editor keeps them (its input
+	 *  owns native text copy/paste). */
+	onCopy: (e: ReactClipboardEvent) => void;
+	onCut: (e: ReactClipboardEvent) => void;
+	onPaste: (e: ReactClipboardEvent) => void;
+	/** Bulk-only pointer range-select (wired by `Grid` only in `bulk` mode): press to
+	 *  land the anchor, drag to extend, release to end. */
+	onPointerDown: (e: ReactPointerEvent) => void;
+	onPointerMove: (e: ReactPointerEvent) => void;
+	onPointerUp: (e: ReactPointerEvent) => void;
 	/**
 	 * Called by the editor input on Enter/Tab. Commits `text` and moves in `moveDir`.
 	 * Returns `true` when it LEFT the editor (valid commit), `false` when it stayed
@@ -73,6 +111,7 @@ export interface UseGridEditingParams {
 	model: GridModel;
 	mode: GridMode;
 	onEdit: ((change: CellEdit) => void) | undefined;
+	onBulkEdit: ((change: BulkEdit) => void) | undefined;
 }
 
 /**
@@ -101,7 +140,7 @@ function coordFromEvent(target: HTMLElement): EditCoord | null {
 }
 
 export function useGridEditing(params: UseGridEditingParams): GridEditing | null {
-	const { model, mode, onEdit } = params;
+	const { model, mode, onEdit, onBulkEdit } = params;
 	const editMode = mode === "edit";
 	const bulkMode = mode === "bulk";
 	// `bulk` is a strict superset of `edit`: both share the editable-cell scan, the
@@ -121,9 +160,13 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 	listRef.current = list;
 	const onEditRef = useRef(onEdit);
 	onEditRef.current = onEdit;
+	const onBulkEditRef = useRef(onBulkEdit);
+	onBulkEditRef.current = onBulkEdit;
 
 	const focusIntentRef = useRef(false);
 	const editSeedRef = useRef<string | null>(null);
+	// True while a pointer press is drag-selecting a range (armed on pointerdown).
+	const draggingRef = useRef(false);
 	// Identity of the row under the open editor, captured at beginEdit, so a structural
 	// model change (row insert / remove / reorder) can be detected and the stale draft
 	// discarded rather than committed to whatever row now sits at that index.
@@ -176,6 +219,12 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 		},
 		[],
 	);
+
+	// The single onBulkEdit funnel (paste / cut / fill / range-clear). Callers pre-filter
+	// out empty ops, so a fired op always carries at least one thing to report.
+	const emitBulk = useCallback((change: BulkEdit) => {
+		onBulkEditRef.current?.(change);
+	}, []);
 
 	const beginEdit = useCallback(
 		(seed: string | null) => {
@@ -260,15 +309,22 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 				return;
 			}
 
-			// Bulk mode first: the selection gestures (extend / select-all / collapse).
-			// Anything classifyBulkKey doesn't claim — `{none}`, and the fill/clear intents
-			// wired in Stage 3b — falls through to the shared Epic 5 nav/edit handling below.
+			// Bulk mode first: selection gestures (extend / select-all / collapse) and the
+			// write gestures (fill-down/right, range-clear → onBulkEdit). Anything
+			// classifyBulkKey returns `{none}` for — including a single-cell Delete and every
+			// clipboard key — falls through to the shared Epic 5 nav/edit handling below.
 			if (bulkMode) {
 				const multi = isMultiSelection(state.anchor, active);
 				const bulk = classifyBulkKey(e.key, e.shiftKey, e.ctrlKey, e.metaKey, multi);
+				// Every intent the bulk layer CLAIMS is consumed here, so the browser never
+				// also acts on it (Shift+Arrow selecting page text, Cmd+A/D/R select-all/
+				// bookmark/reload, Backspace navigating back). Only `{none}` is left un-
+				// prevented — it falls through to the shared Epic 5 nav/edit handling below.
+				if (bulk.kind !== "none") {
+					e.preventDefault();
+				}
 				switch (bulk.kind) {
 					case "extend": {
-						e.preventDefault();
 						const target = nextEditable(listRef.current, active, bulk.dir);
 						if (target !== null) {
 							focusIntentRef.current = true;
@@ -278,7 +334,6 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 						return;
 					}
 					case "selectAll": {
-						e.preventDefault();
 						const cells = listRef.current;
 						focusIntentRef.current = true; // the focus corner moves to the last cell
 						// active is non-null ⇒ the list is non-empty, so both extremes exist.
@@ -290,9 +345,29 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 						return;
 					}
 					case "clearSelection":
-						e.preventDefault();
 						store.dispatch({ type: "CLEAR_SELECTION" });
 						return;
+					case "fill": {
+						// active is non-null here ⇒ the rect is never null (a collapsed 1×1
+						// at worst, which fills nothing — one cell, no target).
+						const rect = selectionRect(state.anchor, active) as SelectionRect;
+						const patches = computeFillPatches(modelRef.current, rect, bulk.dir);
+						if (patches.length > 0) {
+							emitBulk({
+								kind: bulk.dir === "down" ? "fill-down" : "fill-right",
+								edits: patches,
+							});
+						}
+						return;
+					}
+					case "clearRange": {
+						const rect = selectionRect(state.anchor, active) as SelectionRect;
+						const patches = computeClearPatches(modelRef.current, rect);
+						if (patches.length > 0) {
+							emitBulk({ kind: "clear", edits: patches });
+						}
+						return;
+					}
 				}
 			}
 
@@ -324,7 +399,7 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 					return; // "none" — leave the key to the browser
 			}
 		},
-		[store, beginEdit, clearActive, bulkMode],
+		[store, beginEdit, clearActive, emitBulk, bulkMode],
 	);
 
 	const onClick = useCallback(
@@ -366,6 +441,136 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 		[store, beginEdit],
 	);
 
+	// ── Bulk clipboard (Grid wires these only in bulk mode) ──────────────────────
+	// An open editor input owns native copy/cut/paste of its own text: bail (no
+	// preventDefault) so the browser handles the in-input selection. Off the editor,
+	// the grid's selection rectangle is the unit. `active` (hence the rect) can be null
+	// only when there are no editable cells — then there is nothing to copy.
+
+	const onCopy = useCallback(
+		(e: ReactClipboardEvent) => {
+			const target = e.target as HTMLElement;
+			if (target.closest(".finsheet-cell-input") !== null) {
+				return;
+			}
+			const state = store.getState();
+			const rect = selectionRect(state.anchor, state.active);
+			if (rect === null) {
+				return;
+			}
+			e.clipboardData.setData(
+				"text/plain",
+				serializeClipboard(computeCopy(modelRef.current, rect)),
+			);
+			e.preventDefault();
+		},
+		[store],
+	);
+
+	const onCut = useCallback(
+		(e: ReactClipboardEvent) => {
+			const target = e.target as HTMLElement;
+			if (target.closest(".finsheet-cell-input") !== null) {
+				return;
+			}
+			const state = store.getState();
+			const rect = selectionRect(state.anchor, state.active);
+			if (rect === null) {
+				return;
+			}
+			e.clipboardData.setData(
+				"text/plain",
+				serializeClipboard(computeCopy(modelRef.current, rect)),
+			);
+			e.preventDefault();
+			// Cut = copy, then clear the editable cells in the rectangle (one op).
+			const patches = computeClearPatches(modelRef.current, rect);
+			if (patches.length > 0) {
+				emitBulk({ kind: "clear", edits: patches });
+			}
+		},
+		[store, emitBulk],
+	);
+
+	const onPaste = useCallback(
+		(e: ReactClipboardEvent) => {
+			const target = e.target as HTMLElement;
+			if (target.closest(".finsheet-cell-input") !== null) {
+				return;
+			}
+			const state = store.getState();
+			const rect = selectionRect(state.anchor, state.active);
+			if (rect === null) {
+				return;
+			}
+			e.preventDefault(); // in bulk mode the grid owns the paste
+			const block = parseClipboard(e.clipboardData.getData("text/plain"));
+			if (block.length === 0) {
+				return; // empty clipboard — nothing to place
+			}
+			const result = computePastePatches(modelRef.current, listRef.current, rect, block);
+			// Report unless nothing at all happened (no writes, no rejects, no skips).
+			if (result.patches.length + result.rejected.length + result.skipped.length > 0) {
+				emitBulk({
+					kind: "paste",
+					edits: result.patches,
+					rejected: result.rejected,
+					skipped: result.skipped,
+				});
+			}
+		},
+		[store, emitBulk],
+	);
+
+	// ── Bulk pointer range-select (Grid wires these only in bulk mode) ───────────
+	// Press lands the anchor (collapsing any range); a drag onto other cells extends;
+	// release ends it. A shift-press is left to onClick (shift-click extends from the
+	// kept anchor), and a press inside the open editor is left to the input.
+
+	const onPointerDown = useCallback(
+		(e: ReactPointerEvent) => {
+			if (e.shiftKey) {
+				return;
+			}
+			const target = e.target as HTMLElement;
+			if (target.closest(".finsheet-cell-input") !== null) {
+				return;
+			}
+			const coord = coordFromEvent(target);
+			if (coord === null) {
+				return;
+			}
+			focusIntentRef.current = false; // the native press already moves focus here
+			draggingRef.current = true;
+			store.dispatch({ type: "SET_ACTIVE", coord });
+		},
+		[store],
+	);
+
+	const onPointerMove = useCallback(
+		(e: ReactPointerEvent) => {
+			if (!draggingRef.current) {
+				return;
+			}
+			const coord = coordFromEvent(e.target as HTMLElement);
+			if (coord === null) {
+				return; // over a gap / non-editable region — hold the current selection
+			}
+			// Suppress the drag's text selection while a range is forming.
+			e.currentTarget.setAttribute("data-fs-dragging", "true");
+			if (sameCoord(store.getState().active, coord)) {
+				return; // still over the focus cell — nothing to extend
+			}
+			store.dispatch({ type: "EXTEND", coord });
+		},
+		[store],
+	);
+
+	const onPointerUp = useCallback((e: ReactPointerEvent) => {
+		draggingRef.current = false;
+		e.currentTarget.removeAttribute("data-fs-dragging");
+	}, []);
+
 	const controller = useMemo<GridEditing>(
 		() => ({
 			store,
@@ -374,11 +579,31 @@ export function useGridEditing(params: UseGridEditingParams): GridEditing | null
 			onKeyDown,
 			onClick,
 			onDoubleClick,
+			onCopy,
+			onCut,
+			onPaste,
+			onPointerDown,
+			onPointerMove,
+			onPointerUp,
 			commitActive,
 			blurActive,
 			cancelActive,
 		}),
-		[store, onKeyDown, onClick, onDoubleClick, commitActive, blurActive, cancelActive],
+		[
+			store,
+			onKeyDown,
+			onClick,
+			onDoubleClick,
+			onCopy,
+			onCut,
+			onPaste,
+			onPointerDown,
+			onPointerMove,
+			onPointerUp,
+			commitActive,
+			blurActive,
+			cancelActive,
+		],
 	);
 
 	return interactive ? controller : null;

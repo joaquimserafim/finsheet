@@ -8,6 +8,7 @@
 
 import { memo, useEffect, useRef, useSyncExternalStore } from "react";
 import { CellEditor } from "./CellEditor";
+import { rawCellText } from "./clipboard";
 import { CELL_ACTIVE, CELL_EDITING, CELL_IDLE, CELL_INVALID, CELL_SELECTED } from "./editStore";
 import { cellPresentation } from "./internal";
 import type { CellValue, Column } from "./types";
@@ -22,20 +23,6 @@ interface EditableCellProps {
 	column: Column;
 	value: CellValue | undefined;
 	formatValue: (value: CellValue | undefined) => string;
-}
-
-/**
- * The raw stored value as editable text — "edit raw units, reveal on focus": the
- * full unscaled number (never the scaled/formatted display), or `""` for a blank.
- * Rendered in fixed-point (not `String()`), so a tiny magnitude like `5e-7` seeds as
- * `"0.0000005"` — which `parseAccounting` round-trips — rather than as exponential
- * notation, which its deliberately-strict grammar rejects.
- */
-function rawEditValue(value: CellValue | undefined): string {
-	if (value === null || value === undefined) {
-		return "";
-	}
-	return value.toLocaleString("en-US", { useGrouping: false, maximumFractionDigits: 20 });
 }
 
 function EditableCellImpl({
@@ -87,7 +74,7 @@ function EditableCellImpl({
 			{isEditing ? (
 				<CellEditor
 					editing={editing}
-					initialValue={editSeedRef.current ?? rawEditValue(value)}
+					initialValue={editSeedRef.current ?? rawCellText(value)}
 					invalid={status === CELL_INVALID}
 					ariaLabel={column.header ? `${rowLabel}, ${column.header}` : rowLabel}
 				/>
