@@ -164,11 +164,25 @@ per-stage deliverables** — each box flips only when its commit lands (never "h
 non-editable targets skipped + reported; one `onBulkEdit` → one model swap → one undo.
 
 ### Epic 7 — Performance hardening
-- [ ] memo boundaries (Row / Cell) + stable callbacks
-- [ ] colgroup-driven widths (no per-cell inline style objects)
-- [ ] bench harness (N rows × M cols; keystroke re-render count)
-- [ ] virtualization decision — threshold + optional `@tanstack/react-virtual`, or defer
-- **Done when:** documented perf profile; keystroke = 1 cell re-render.
+*Measure-first: the re-render engineering was already built in Epics 3/5/6 (Grid never re-renders
+on an edit — only 1–2 cells do), so Epic 7 pins that invariant and records ONE decision. Full
+scope + resolved gates in [docs/epics/epic-7.md](epics/epic-7.md), scoped via a 4-lens design
+panel (both adversarial verifiers HOLD).*
+
+**Stage 1 — Baseline audit (already met):**
+- [x] `GridRow` / `EditableCell` memo + stable callbacks (`formatValue` primitive-keyed; controller memoized)
+- [x] colgroup-driven widths — no per-cell inline style objects **on value cells** (the label `<th>` keeps an intentional `--fs-depth` CSS-var for arbitrary-depth `calc()` indentation)
+- [x] `GridCell` deliberately non-memo'd (off the keystroke path); per-cell `useSyncExternalStore` seam re-renders only changed cells, never `Grid`
+
+**Stage 2 — Measure:**
+- [ ] store `cellStatus`-delta assertions — in-gate proof of exact per-gesture re-render counts
+- [ ] N×M `<Profiler>` bench in `bench/` (outside the 100% gate + shipped bundle); `pnpm bench`
+- [ ] documented perf profile (per-gesture counts; O(1) cells — 0/1/2 — never O(N), never `Grid`)
+
+**Stage 3 — Decision (founder gate):**
+- [ ] resolve virtualization in writing — ship an opt-in `virtualize` prop, or **defer** behind a documented ~150-row threshold (recommended: defer — per-edit work is already O(1) and the structure is already virtualization-ready, so deferral is reversible at zero structural cost)
+
+**Done when:** documented default-path perf profile (per-gesture re-render counts, `Grid` = 0), proven in-gate + benched O(1) in row count; virtualization gate resolved in writing.
 
 ### Epic 8 — Docs & v0.2.0 release
 - [ ] editing + bulk usage docs
@@ -179,9 +193,19 @@ non-editable targets skipped + reported; one `onBulkEdit` → one model swap →
 
 ## Deferred decisions
 
-- **Virtualization** — evaluate in Epic 7. Under ~100–150 rows, native scroll + sticky is
-  faster and simpler. If needed: `@tanstack/react-virtual`, with pinned total rows kept outside
-  the windowed body (sticky `<tfoot>`).
+- **Virtualization** — Epic 7 records the stance; likely **deferred** to a future "on measured
+  need" epic (per-edit work is already O(1) in row count, and the structure is already
+  virtualization-ready, so windowing only bounds mount / DOM-node / scroll cost for very large
+  statements — rare in authored statements; native scroll + sticky wins under ~150 rows). The
+  verified windower sketch lives in [docs/epics/epic-7.md](epics/epic-7.md): an **opt-in,
+  default-off `virtualize` prop**, a pure `windowRange.ts` (100% node-covered) over absolute model
+  indices, top/bottom spacer `<tr>` windowing (never transforms — keeps `table-layout: fixed` +
+  colgroup + the sticky label), the pinned total kept outside `<tbody>`, and the active/editing
+  row force-mounted so focus + the tab-stop + the editor draft survive scroll. Build-vs-buy leans
+  **in-house** over `@tanstack/react-virtual` (the `<table>` medium forces spacer-row windowing
+  anyway; its ResizeObserver measurement can't be covered in the happy-dom gate regardless).
+  Windowed a11y (`aria-rowcount`/`rowindex`) routes through Epic 8's composite-grid work, not a
+  perf-epic bolt-on.
 - **Releases are manual** (`pnpm version` + `pnpm publish`), run by the maintainer. No
   auto-publish workflow. Changesets deferred until contributor volume justifies it.
 - **npm provenance** — deferred. Provenance requires publishing from CI via OIDC; a manual local
