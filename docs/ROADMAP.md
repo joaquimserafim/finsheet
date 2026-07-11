@@ -203,7 +203,7 @@ follow-up once the gallery makes the current look visible.*
 
 **Stage 3 — Release prep (v0.2.0)**
 - [x] version bump `0.1.0 → 0.2.0` — `package.json` + the `VERSION` constant in `src/index.ts`, in sync
-- [ ] RELEASING.md v0.2.0 pass — generalize the v0.1.0-hardcoded notes/tag + add v0.2.0 release notes
+- [x] RELEASING.md v0.2.0 pass — generalized tag/notes (`VERSION` var) + v0.2.0 notes; gate gains `test:browser` + CHANGELOG step
 - [ ] **(maintainer)** green-gate + `pnpm publish` v0.2.0 + tag + `gh release` — the manual act, gated on all above
 
 **Done when:** a committed screenshot gallery across configs (embedded in the README); docs describe the

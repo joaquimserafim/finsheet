@@ -65,8 +65,9 @@ deferred (Epic 7). Make the docs describe the **shipping** surface.
 - [x] **Version bump** — `0.2.0` in `package.json` **and** the `VERSION` constant in
   [src/index.ts](../../src/index.ts), **in sync** (`index.test.ts` is version-agnostic; 227 tests
   green). Also refreshed index.ts's module doc (was "read-only" only) to name the `edit` / `bulk` modes.
-- [ ] **RELEASING.md v0.2.0 pass** — generalize the v0.1.0-hardcoded release notes + `git tag v0.1.0`,
-  and add the v0.2.0 release-notes text (editing + bulk + the screenshot gallery).
+- [x] **RELEASING.md v0.2.0 pass** — the tag/notes are now a `VERSION=v0.2.0` variable + v0.2.0 notes
+  (drawn from `CHANGELOG.md`); the version-bump step now also requires a dated CHANGELOG entry; the
+  local gate gained `pnpm test:browser`. No hardcoded `v0.1.0` tag left (only historical references).
 - [ ] **(maintainer) Publish** — full local gate green (`lint` / `typecheck` / `test:coverage` /
   `test:browser` / `build` / `pnpm pack --dry-run`), then the manual act: `pnpm publish` +
   `git tag v0.2.0` + `gh release create`. **Run by the maintainer**, gated on everything above; this

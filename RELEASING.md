@@ -24,14 +24,15 @@ You also need to be logged in (`npm whoami`; otherwise `npm login`).
 From a clean `main` with CI green:
 
 ```sh
-# 1. Bump the version in BOTH package.json and the VERSION constant in src/index.ts.
-#    (v0.1.0 is already set; for later releases bump both — they must match.)
+# 1. Bump the version in BOTH package.json and the VERSION constant in src/index.ts — they MUST
+#    match. Add a dated CHANGELOG.md entry for the new version.
 
 # 2. Full local gate — the same checks CI runs, plus the packaged-tarball smoke test.
 pnpm install
 pnpm lint
 pnpm typecheck
 pnpm test:coverage
+pnpm test:browser   # real-Chromium fidelity suite (run `pnpm exec playwright install chromium` once)
 pnpm build
 
 # 3. Inspect exactly what will ship (should be dist/ + package.json + README + LICENSE, nothing else).
@@ -49,17 +50,21 @@ pnpm publish --access public
 
 ## 3. Tag and create the GitHub release
 
-```sh
-git tag v0.1.0            # match the published version, with a leading "v"
-git push origin v0.1.0
+Match the tag to the published version, with a leading `v`:
 
-gh release create v0.1.0 \
-  --title "v0.1.0" \
-  --notes "First public release: read-only financial-statement grid — sticky header + label column, subtotal/total rows, pinned grand total, accounting formatters, light/dark theming. Editing lands in v0.2.0." \
+```sh
+VERSION=v0.2.0
+git tag "$VERSION"
+git push origin "$VERSION"
+
+gh release create "$VERSION" \
+  --title "$VERSION" \
+  --notes "Editing. Single-cell editing (mode=\"edit\") and bulk mode (mode=\"bulk\" — range select, Excel-compatible TSV clipboard, fill/clear); the grid never re-renders on an edit (only changed cells do). See CHANGELOG.md." \
   --verify-tag
 ```
 
-(Or `gh release create v0.1.0 --generate-notes` to draft notes from the commit log.)
+Draw the notes from the matching [CHANGELOG.md](CHANGELOG.md) entry (or `--generate-notes` to draft
+from the commit log). For reference, v0.1.0 was the first public release — the read-only grid.
 
 ## 4. Verify the published package
 
