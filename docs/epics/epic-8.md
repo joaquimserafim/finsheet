@@ -24,9 +24,12 @@ run via `pnpm test:browser`). The gallery reuses it: no new dependency, no Story
 Reuses the existing real-Chromium stack; writes **documentation** PNGs (curated, regenerated on
 demand), never a gating regression baseline.
 
-- [ ] **Screenshot harness** — a `pnpm screenshots` script + config that renders a `<Grid>` in real
-  Chromium and writes a PNG to a **committed, non-ignored** dir (`docs/screenshots/`), proven with
-  one config end-to-end. Must **not** write into the git-ignored `__screenshots__/` / `test-results/`.
+- [x] **Screenshot harness** — `pnpm screenshots` (`vitest.screenshots.config.ts` +
+  `screenshots/gallery.screenshots.test.tsx`, reusing the Chromium/Playwright stack) renders a `<Grid>`
+  and writes a PNG to the **committed** `docs/screenshots/` via a test-file-relative `path` (never the
+  git-ignored `__screenshots__/`); a wide `page.viewport(1000, 800)` avoids the default-viewport clip.
+  **Proven end-to-end** with `income-statement-light.png`. Kept out of the default run + 100% gate
+  (`screenshots/**` excluded); typechecks via `screenshots/vite-env.d.ts` + the tsconfig include.
 - [ ] **Config fixtures captured** — the documented config set, each a small fixture model → one PNG:
   read-only P&L (light), the same (dark), `mode="edit"` with an active cell + focus ring, `mode="bulk"`
   with a selection band, a balance sheet, a "shown in thousands" scale, and a `--fs-*` token-override
@@ -81,14 +84,14 @@ deferred (Epic 7). Make the docs describe the **shipping** surface.
 - **Publishing stays a manual maintainer act** — the epic scopes prep + gate-green + release notes;
   the `pnpm publish` is the maintainer's.
 
-## Founder gates (decide before building)
+## Founder gates — RESOLVED (2026-07-11)
 
-- **The config list** — is the ~7-shot set above right, or add/drop configs (e.g. a
-  `stickyFooter={false}` variant, a rejected-paste state, a locked-column example)?
-- **Where the gallery lives** — a README "Gallery" section, a dedicated `docs/gallery.md`, or both?
-- **CHANGELOG.md** — introduce one now with a v0.2.0 entry, or defer to the v1.0 milestone?
-- **Light CSS touch-up** — if the gallery exposes a weak-looking config, is a *small* fix in-scope for
-  this epic, or strictly a follow-up?
+- **The config list** → the **7-shot set** above (income light/dark, `edit`, `bulk` selection, balance
+  sheet, thousands-scale, token-override). The optional extras (`stickyFooter={false}`, rejected-paste,
+  locked-column) are **dropped** to keep the set small and curated.
+- **Where the gallery lives** → a dedicated **`docs/gallery.md`**, linked from the README.
+- **CHANGELOG.md** → **introduce now**, with a v0.2.0 entry (Stage 2).
+- **Light CSS touch-up** → **strictly a follow-up** — not in Epic 8; any polish is a separate reviewed change.
 
 ## Risks
 

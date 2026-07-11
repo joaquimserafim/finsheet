@@ -5,10 +5,11 @@ export default defineConfig({
 		environment: "happy-dom",
 		globals: true,
 		setupFiles: ["./vitest.setup.ts"],
-		// Browser-only fidelity tests run in real Chromium via vitest.browser.config.ts.
-		// Keep them out of the happy-dom unit run AND the 100% coverage gate — this config
-		// has no explicit `include`, so the default glob would otherwise sweep them up.
-		exclude: [...configDefaults.exclude, "src/**/*.browser.test.{ts,tsx}"],
+		// Real-Chromium tests run via their own configs: fidelity (vitest.browser.config.ts)
+		// and the screenshot gallery (vitest.screenshots.config.ts). Keep both out of the
+		// happy-dom unit run AND the 100% coverage gate — this config has no explicit
+		// `include`, so the default glob would otherwise sweep up their .test files.
+		exclude: [...configDefaults.exclude, "src/**/*.browser.test.{ts,tsx}", "screenshots/**"],
 		coverage: {
 			provider: "v8",
 			reporter: ["text", "html", "lcov"],

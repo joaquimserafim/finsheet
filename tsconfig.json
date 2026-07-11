@@ -23,6 +23,7 @@
 		"src",
 		"examples",
 		"bench",
+		"screenshots",
 		"vite.config.ts",
 		"vitest.config.ts",
 		"vitest.bench.config.ts",
