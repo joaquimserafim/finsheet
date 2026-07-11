@@ -199,7 +199,7 @@ follow-up once the gallery makes the current look visible.*
 **Stage 2 — Docs truthing (v0.1.0 → v0.2.0)**
 - [x] README truthing — status callout → `v0.2.0`, "virtualization follows" → deferred, limitations bullet, present-tense editing
 - [x] examples audit — verified vs shipping API; fixed a real `theming.tsx` bug (ancestor `--fs-*` is shadowed → on-`.finsheet` class)
-- [ ] CHANGELOG.md — Keep-a-Changelog with a `0.2.0` entry (+ back-filled `0.1.0`)
+- [x] CHANGELOG.md — Keep a Changelog with a `0.2.0` entry (+ back-filled `0.1.0`, `2026-07-09`)
 
 **Stage 3 — Release prep (v0.2.0)**
 - [ ] version bump `0.1.0 → 0.2.0` — `package.json` + the `VERSION` constant in `src/index.ts`, in sync

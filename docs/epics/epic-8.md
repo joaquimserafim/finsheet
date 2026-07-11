@@ -56,8 +56,9 @@ deferred (Epic 7). Make the docs describe the **shipping** surface.
   header stayed the default grey, not teal). Rewrote it to the supported on-`.finsheet` pattern
   (`.finsheet.teal { … }` + `className`, proven teal) and corrected the JSDoc. The other four examples +
   `examples/README.md` were accurate.
-- [ ] **CHANGELOG.md** — introduce `CHANGELOG.md` (Keep-a-Changelog style) with a `0.2.0` entry
-  (editing + bulk + the gallery) and a back-filled `0.1.0` entry.
+- [x] **CHANGELOG.md** — [`CHANGELOG.md`](../../CHANGELOG.md) created (Keep a Changelog + SemVer): a
+  `0.2.0` entry (editing, bulk, the pinned O(1) re-render guarantee, the gallery) + a back-filled
+  `0.1.0` entry (`2026-07-09`, from the npm publish date). **✅ Stage 2 complete.**
 
 ## Stage 3 — Release prep (v0.2.0)
 
