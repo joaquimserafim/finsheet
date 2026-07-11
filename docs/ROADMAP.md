@@ -184,10 +184,76 @@ panel (both adversarial verifiers HOLD).*
 
 **Done when:** documented default-path perf profile (per-gesture re-render counts, `Grid` = 0), proven in-gate + benched O(1) in row count; virtualization gate resolved in writing. — **✅ Epic 7 COMPLETE.**
 
-### Epic 8 — Docs & v0.2.0 release
-- [ ] editing + bulk usage docs
-- [ ] **visual polish pass** — level the default theme to the Simo design-system caliber (hairline rules, spacing, tabular figures, refined light/dark)
-- [ ] manual publish `v0.2.0`
+### Epic 8 — Snapshots, docs truthing & v0.2.0 release
+*The last epic of v0.2.0, deliberately **small**. Not a blind CSS polish pass — instead: **capture**
+how the grid looks across configs as committed, regenerable screenshots (the visual-QA surface
+happy-dom can't give us), **truth up** the docs that still describe v0.1.0, and **cut** the release.
+Full scope + resolved gates in [docs/epics/epic-8.md](epics/epic-8.md). Any CSS polish is a reviewed
+follow-up once the gallery makes the current look visible.*
+
+**Stage 1 — Snapshot gallery** (reuses the Epic 6 Chromium/`@vitest/browser` stack; no new dep)
+- [ ] screenshot harness — `pnpm screenshots` → PNGs to a committed `docs/screenshots/` (not the ignored `__screenshots__/`)
+- [ ] config fixtures captured — read-only (light/dark), `edit`, `bulk` selection, balance sheet, thousands-scale, token-override
+- [ ] gallery embed — README "Gallery" section (and/or `docs/gallery.md`) referencing every shot
+
+**Stage 2 — Docs truthing (v0.1.0 → v0.2.0)**
+- [ ] README truthing — status callout, the "virtualization follows" line → deferred, limitations (editing shipped)
+- [ ] examples audit — all five `examples/*.tsx` + index match the shipping API
+
+**Stage 3 — Release prep (v0.2.0)**
+- [ ] version bump `0.1.0 → 0.2.0` — `package.json` + the `VERSION` constant in `src/index.ts`, in sync
+- [ ] RELEASING.md v0.2.0 pass — generalize the v0.1.0-hardcoded notes/tag + add v0.2.0 release notes
+- [ ] **(maintainer)** green-gate + `pnpm publish` v0.2.0 + tag + `gh release` — the manual act, gated on all above
+
+**Done when:** a committed screenshot gallery across configs (embedded in the README); docs describe the
+shipping `edit`/`bulk` surface (virtualization deferred); version `0.2.0` in sync; RELEASING.md covers
+v0.2.0; gates green; **`finsheet@0.2.0`** published.
+
+---
+
+## Milestone `v1.0.0` — Comparative statements & API stability
+
+v1.0 is a **stability commitment** as much as a feature set: publishing `1.0.0` tells consumers the
+`GridModel` shape and the `--fs-*` token names won't break under them. So the milestone adds the few
+**in-domain** things today's model can't express (all **non-breaking** widenings — the ones the Epic 1
+design panel surfaced), fixes the two real gaps the editing surface shipped with, then **writes down
+the deferred positions and freezes the contract**. Each epic below is a *sketch* — it gets a
+design-panel scope in `docs/epics/` before build, like Epics 5–8.
+
+### Epic 9 — Per-column formatting
+- [ ] `Column.format` / `scale` / `precision` — a `% margin` or `YoY growth %` column beside currency
+  (today's single-formatter-per-grid can't express it; already flagged in Notes & limitations)
+- [ ] threads through `formatAccounting`; a per-column override beats `defaultFormat`; **raw units
+  preserved** for editing + the clipboard (edit reveals the unscaled number regardless of column format)
+- **Non-breaking** — additive optional fields on `Column`; a single-format grid renders unchanged.
+
+### Epic 10 — Grouped column headers
+- [ ] `Column.group` — band `Actual │ Budget │ Δ` under a period super-header (the comparative-statement
+  layout finsheet can't render today)
+- [ ] spanning `<thead>` row; colgroup / sticky / header-association still correct; snapshot parity when unused
+- **Non-breaking** — additive optional field; a flat-header grid renders unchanged.
+
+### Epic 11 — Print & selection a11y (the two real fixes)
+- [ ] **print stylesheet** — an `@media print` block: release the scroll box (`overflow: visible`),
+  lean on native `<thead>`/`<tfoot>` page repetition, keep the accounting rules / drop the tints, force
+  black-on-white regardless of theme, page-break discipline on subtotal/total rows. *(Today the scroll
+  container clips printed statements — a real bug, not a nicety.)*
+- [ ] **selection-band non-color affordance** — the range is conveyed by background tint only
+  (`data-fs-selected`), which trips WCAG 1.4.1 (use of color); add a border/outline cue.
+- **Both additive + brand-neutral** — no token renames.
+
+### Epic 12 — API stability & v1.0 release
+- [ ] **write the deferred positions** — virtualization deferred ("on measured need", ~150-row
+  threshold, a future opt-in `virtualize` prop; the structure is already windowing-ready) and the a11y
+  contract (native `<table>` semantics; `role=grid` / `aria-rowindex` / announcer a **documented
+  non-goal**). The two are **coupled**: no windowing ⇒ native semantics stay truthful.
+- [ ] **freeze the contract** — the `GridModel` shape + the `--fs-*` token names are stable API;
+  document the semver policy (additive-only within 1.x)
+- [ ] manual publish **`v1.0.0`**
+
+Deferred *within* v1.0 (add on need, not speculatively): a note / text column, column-key type safety
+(a dev-mode validator over a generic `GridModel<C>`), and virtualization (only past the measured
+row-count threshold).
 
 ---
 
