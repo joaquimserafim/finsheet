@@ -302,9 +302,12 @@ All settled by the founder; folded into the locked decisions above.
 - [x] README: bulk-mode section (`mode`, `onBulkEdit`/`BulkEdit`, keyboard table, copy/paste/fill, editable-guard behaviour, TSV/raw-units note); `mode` row + `onBulkEdit` row in the props table
 - [x] `examples/bulk-statement.tsx` (typecheck-verified in CI via the `finsheet`→`src` alias) + examples index row; as-built notes folded into the Stage 3b block above
 
-**Stage 4b — browser suite (fidelity):**
-- [ ] `@vitest/browser` (Chromium, in a **separate config** so the 100% happy-dom coverage gate + the existing CI job stay intact): real clipboard round-trip to/from Excel TSV; focused-`<td>` receipt (fix 9); pointer drag-select over real coordinates; `Cmd+R/D` preventDefault; re-render-count assertions. *(Also clears Epic 5's deferred browser suite.)*
-  - Note: the lone `/* v8 ignore */` in `CellEditor.tsx` (the trailing-blur double-commit guard) **stays** — the browser suite asserts it live, but unit coverage can't merge browser coverage into the gate, and happy-dom never fires that blur.
+**Stage 4b — browser suite (fidelity):** ✅ **committed** (5 browser tests, real Chromium)
+- [x] `@vitest/browser` + `@vitest/browser-playwright` + `playwright` (Chromium), in a **separate `vitest.browser.config.ts`** (run via `pnpm test:browser`) so the 100% happy-dom coverage gate + the existing CI `check` job stay intact; the unit config now `exclude`s `*.browser.test.tsx`, and a dedicated CI `browser` job runs `playwright install --with-deps chromium` + `pnpm test:browser`
+- [x] `src/Grid.browser.test.tsx`: (1) real DOM **focus receipt** — keyboard nav moves `document.activeElement`; (2) the trailing-blur **double-commit guard** asserted live (the `CellEditor` v8-ignore); (3) **OS clipboard round-trip** — copy a range → real system clipboard → paste into another row → `onBulkEdit`; (4) **render discipline** — `<Grid>` never re-renders on a move or a keystroke. *(Also closes Epic 5's deferred focus/blur + re-render suite.)*
+- Deliberately unscoped, with reasons: **pointer drag-select in-browser** (userEvent exposes no real drag-select primitive — `dragAndDrop` is HTML5 DnD, not our pointer sequence; stays happy-dom-covered) and **`Cmd+R/D` preventDefault** (the handler's `preventDefault` is unit-covered; a real reload/bookmark can't be observed from inside the harness). The `CellEditor` v8-ignore **stays** — happy-dom never fires that blur and browser coverage can't merge into the gate.
+
+**Epic 6 is complete** (Stages 1 · 2 · 3a · 3b · 4a · 4b). Remaining v0.2.0 work: Epic 7 (performance / virtualization), Epic 8 (visual polish + release).
 
 **Done when:** paste a block from a spreadsheet + fill-down write **editable cells only**; copy
 round-trips to/from Excel; non-editable targets are skipped and **reported**; one `onBulkEdit` →

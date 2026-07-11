@@ -88,8 +88,8 @@ export function CellEditor({ editing, initialValue, invalid, ariaLabel }: CellEd
 	function onBlur() {
 		// A keyboard commit/cancel already finalised (and unmounted) this editor; the
 		// trailing native blur then fires only in a REAL browser — happy-dom does not
-		// emit it — so this double-commit guard is exercised by the Stage 3
-		// @vitest/browser suite, which will replace this ignore with a live assertion.
+		// emit it. Grid.browser.test.tsx asserts this guard live in Chromium; the ignore
+		// stays because the happy-dom coverage run (the 100% gate) can never reach the line.
 		/* v8 ignore start */
 		if (committedRef.current) {
 			return;

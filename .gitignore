@@ -2,6 +2,10 @@ node_modules/
 dist/
 coverage/
 
+# vitest browser-mode failure artifacts
+__screenshots__/
+test-results/
+
 # local progress tracker — not committed
 progress.md
 

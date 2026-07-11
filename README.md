@@ -276,6 +276,7 @@ pnpm install       # installs deps and sets up husky hooks via `prepare`
 pnpm dev           # Vite playground (a live P&L)
 pnpm test          # Vitest (watch)
 pnpm test:coverage # Vitest + V8 coverage (100% gate)
+pnpm test:browser  # Vitest in real Chromium (focus/clipboard fidelity; run `pnpm exec playwright install chromium` once)
 pnpm build         # tsup → dist (ESM + .d.ts + styles.css)
 pnpm lint          # Biome check
 pnpm typecheck     # tsc --noEmit

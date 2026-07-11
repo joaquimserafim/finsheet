@@ -120,7 +120,7 @@ Proves the render surface **and** the publish path on low-risk ground.
 - [x] local uncontrolled input on active cell; commit on blur/Enter
 - [x] interaction tests — happy-dom RTL suite (134 tests, 100% cov)
 - [x] README editing docs (Editing section, `mode`/`onEdit` props, keyboard table, examples link)
-- [ ] `@vitest/browser` focus/blur suite + strict 1-cell re-render-count → **deferred to Epic 8** (rides with Epic 6 Stage 4)
+- [x] `@vitest/browser` focus/blur suite + re-render-count → **delivered in Epic 6 Stage 4b** (`src/Grid.browser.test.tsx`)
 - **Done when:** keyboard nav + single-cell edit works; one cell re-renders per keystroke. — **met.**
 
 ### Epic 6 — Bulk mode (`bulk`) — "the spreadsheet"
@@ -156,8 +156,9 @@ per-stage deliverables** — each box flips only when its commit lands (never "h
 - [x] README bulk-mode section (`mode`/`onBulkEdit`/`BulkEdit`, keyboard table, TSV/raw-units + editable-guard notes)
 - [x] `examples/bulk-statement.tsx` (typecheck-verified in CI) + examples index row
 
-**Stage 4b — browser suite (fidelity):**
-- [ ] `@vitest/browser` (Chromium, separate config): real clipboard round-trip, focused-`<td>` receipt, pointer drag over real coords, `Cmd+R/D` preventDefault, re-render counts (also closes Epic 5's deferred browser suite)
+**Stage 4b — browser suite (fidelity):** ✅ committed
+- [x] `@vitest/browser` (real Chromium via Playwright, separate config + CI job — unit gate untouched): real DOM focus receipt, the trailing-blur **double-commit guard asserted live** (the one `CellEditor` v8-ignore), **OS clipboard copy→paste round-trip**, and `<Grid>`-never-re-renders render counts. 5 tests. **Also closes Epic 5's deferred focus/blur + re-render-count suite.**
+- Deliberately unscoped: browser pointer-drag (no real drag-select primitive in userEvent; stays happy-dom-covered) and `Cmd+R/D` preventDefault (asserted at the unit level; a real reload/bookmark can't be observed in-harness). The v8-ignore **stays** — browser coverage can't merge into the happy-dom gate.
 
 **Done when:** paste a block from a spreadsheet + fill-down write **editable cells only**; copy round-trips;
 non-editable targets skipped + reported; one `onBulkEdit` → one model swap → one undo.
