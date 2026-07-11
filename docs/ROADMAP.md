@@ -179,10 +179,10 @@ panel (both adversarial verifiers HOLD).*
 - [x] N×M `<Profiler>` bench in `bench/` (outside the 100% gate + shipped bundle); `pnpm bench` — mount O(N) (~45/178/447 ms at 50/500/2000 rows), **1 commit/move flat**
 - [x] documented perf profile in [epic-7.md](epics/epic-7.md) (per-gesture counts + bench; O(1) cells — 0/1/2 — never O(N), never `Grid`)
 
-**Stage 3 — Decision (founder gate):**
-- [ ] resolve virtualization in writing — ship an opt-in `virtualize` prop, or **defer** behind a documented ~150-row threshold (recommended: defer — per-edit work is already O(1) and the structure is already virtualization-ready, so deferral is reversible at zero structural cost)
+**Stage 3 — Decision (founder gate):** ✅ committed
+- [x] **DECIDED (2026-07-11): defer** — virtualization does not ship in v0.2.0 (the bench shows editing is already O(1); a windower buys only the O(N) mount column, rare for authored statements; the structure is already virtualization-ready so deferral is reversible). Windower design parked in epic-7.md + Deferred decisions, for a future "on measured need" epic.
 
-**Done when:** documented default-path perf profile (per-gesture re-render counts, `Grid` = 0), proven in-gate + benched O(1) in row count; virtualization gate resolved in writing.
+**Done when:** documented default-path perf profile (per-gesture re-render counts, `Grid` = 0), proven in-gate + benched O(1) in row count; virtualization gate resolved in writing. — **✅ Epic 7 COMPLETE.**
 
 ### Epic 8 — Docs & v0.2.0 release
 - [ ] editing + bulk usage docs
@@ -193,10 +193,10 @@ panel (both adversarial verifiers HOLD).*
 
 ## Deferred decisions
 
-- **Virtualization** — Epic 7 records the stance; likely **deferred** to a future "on measured
-  need" epic (per-edit work is already O(1) in row count, and the structure is already
-  virtualization-ready, so windowing only bounds mount / DOM-node / scroll cost for very large
-  statements — rare in authored statements; native scroll + sticky wins under ~150 rows). The
+- **Virtualization** — **DEFERRED** (Epic 7, 2026-07-11) to a future "on measured need" epic
+  (per-edit work is already O(1) in row count, and the structure is already virtualization-ready,
+  so windowing only bounds mount / DOM-node / scroll cost for very large statements — rare in
+  authored statements; native scroll + sticky wins under ~150 rows). The
   verified windower sketch lives in [docs/epics/epic-7.md](epics/epic-7.md): an **opt-in,
   default-off `virtualize` prop**, a pure `windowRange.ts` (100% node-covered) over absolute model
   indices, top/bottom spacer `<tr>` windowing (never transforms — keeps `table-layout: fixed` +

@@ -83,12 +83,14 @@ Turn the loose done-when into exact, **gate-enforced**, documented numbers. ✅ 
 
 ## Stage 3 — Record the virtualization decision (the one founder gate)
 
-- [ ] **Resolve, in writing, in this doc + the ROADMAP's deferred decisions** — ship an opt-in
-  `virtualize` prop **now**, or **defer** it behind a documented ~150-row threshold. Recorded
-  from Stage 2's bench numbers. This box flips when the decision is written down (it is binary:
-  *decided*), regardless of which way it goes. **Recommendation: defer** — per-edit work is
-  already O(1), the code is already virtualization-ready (so deferring costs nothing
-  structurally and is fully reversible), and native scroll + sticky wins under ~150 rows.
+- [x] **DECIDED (2026-07-11): defer.** Row virtualization does **not** ship in v0.2.0. Rationale,
+  from Stage 2's bench: per-edit work is already O(1) (1 commit/move, flat from 50 → 2000 rows),
+  so a windower buys **nothing** for edit latency — only the O(N) *mount* column (~45 → ~431 ms),
+  which authored statements rarely reach; native scroll + sticky wins under ~150 rows; the
+  structure is already virtualization-ready, so deferral is **fully reversible at zero structural
+  cost**; and a windowed path would double the interaction/a11y test matrix. The verified windower
+  design is parked in *Deferred — the windower* below and in the ROADMAP's deferred decisions, to
+  be picked up **only on measured need** (a real statement past ~150 rows with a felt mount cost).
 
 ## Perf profile (default path — `virtualize` off)
 
@@ -140,10 +142,10 @@ decision: editing is already O(1), so virtualization would buy only the mount/DO
 - **If a windower ever ships, it is opt-in via a `virtualize` prop, default off, byte-identical
   when off** (so `Grid.snapshot.test.tsx` parity holds and v0.1/v0.2 render is unchanged).
 
-## Founder gate
+## Founder gate — RESOLVED (defer)
 
-**One primary call: does row virtualization ship in v0.2.0, or defer?** (Recommendation:
-**defer** with a documented ~150-row threshold — measure the bench first, decide second.) Every
+**The one primary call: does row virtualization ship in v0.2.0, or defer? → DEFERRED** (2026-07-11,
+from the bench; see Stage 3). Every
 other windowing question — build-vs-buy the windower, the `virtualize` prop shape, windowed
 `aria-rowcount`/`rowindex` semantics, measured vs estimated heights, drag-select autoscroll — is
 **contingent on shipping** and is captured in the deferred sketch below; none of it is reopened
@@ -238,3 +240,7 @@ independent of row count; the stub's memo / colgroup items are recorded as alrea
 virtualization founder gate is **resolved in writing** (ship the opt-in `virtualize` prop, or
 defer with the documented ~150-row threshold). The 100% happy-dom coverage gate stays green
 throughout.
+
+**✅ Epic 7 COMPLETE** (2026-07-11) — Stage 1 (already met) · Stage 2 (measured: 227 unit tests /
+100% cov + `pnpm bench`) · Stage 3 (**virtualization deferred**). The windower is parked for a
+future "on measured need" epic. Remaining v0.2.0 work: **Epic 8 — visual polish + release**.
