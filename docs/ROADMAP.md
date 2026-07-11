@@ -152,9 +152,12 @@ per-stage deliverables** — each box flips only when its commit lands (never "h
 - [x] `EditableCell` reveal shares `rawCellText` (duplicate killed); playground applies bulk ops
 - [x] happy-dom RTL suite (mocked `clipboardData`/pointer; paste-into-open-editor bails) — 219 tests, 100% cov
 
-**Stage 4 — browser + docs:**
-- [ ] `@vitest/browser` real clipboard/pointer suite (also closes Epic 5's deferred browser suite)
-- [ ] README bulk-mode section
+**Stage 4a — docs:** ✅ committed
+- [x] README bulk-mode section (`mode`/`onBulkEdit`/`BulkEdit`, keyboard table, TSV/raw-units + editable-guard notes)
+- [x] `examples/bulk-statement.tsx` (typecheck-verified in CI) + examples index row
+
+**Stage 4b — browser suite (fidelity):**
+- [ ] `@vitest/browser` (Chromium, separate config): real clipboard round-trip, focused-`<td>` receipt, pointer drag over real coords, `Cmd+R/D` preventDefault, re-render counts (also closes Epic 5's deferred browser suite)
 
 **Done when:** paste a block from a spreadsheet + fill-down write **editable cells only**; copy round-trips;
 non-editable targets skipped + reported; one `onBulkEdit` → one model swap → one undo.

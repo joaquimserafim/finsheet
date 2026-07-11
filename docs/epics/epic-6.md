@@ -298,10 +298,13 @@ All settled by the founder; folded into the locked decisions above.
 
 *As-built deviations from the plan:* pointer drag uses **no capture** — `onPointerMove` reads the cell under the cursor from `e.target` (`coordFromEvent`), so the whole path is happy-dom-coverable and there is **no `elementFromPoint`** (fix 8 is moot). Paste always emits `rejected`/`skipped` as arrays (empty when none), not conditionally omitted. `Cmd+D/R` `preventDefault` fires but its browser effect (no bookmark / reload) is only observable in Stage 4.
 
-**Stage 4 — browser + docs:**
-- [ ] `@vitest/browser` (Chromium): real clipboard round-trip to/from Excel TSV; focused-`<td>` receipt (fix 9); pointer drag-select over real coordinates; `Cmd+R/D` preventDefault; re-render-count assertions. *(Also clears Epic 5's deferred browser suite.)*
-- [ ] README: bulk-mode section (`mode`, `onBulkEdit`/`BulkEdit`, keyboard table, copy/paste/fill, editable-guard behaviour, raw-units note)
-- [ ] `docs/epics/epic-6.md`: fold in as-built notes + resolved gates
+**Stage 4a — docs:** ✅ **committed**
+- [x] README: bulk-mode section (`mode`, `onBulkEdit`/`BulkEdit`, keyboard table, copy/paste/fill, editable-guard behaviour, TSV/raw-units note); `mode` row + `onBulkEdit` row in the props table
+- [x] `examples/bulk-statement.tsx` (typecheck-verified in CI via the `finsheet`→`src` alias) + examples index row; as-built notes folded into the Stage 3b block above
+
+**Stage 4b — browser suite (fidelity):**
+- [ ] `@vitest/browser` (Chromium, in a **separate config** so the 100% happy-dom coverage gate + the existing CI job stay intact): real clipboard round-trip to/from Excel TSV; focused-`<td>` receipt (fix 9); pointer drag-select over real coordinates; `Cmd+R/D` preventDefault; re-render-count assertions. *(Also clears Epic 5's deferred browser suite.)*
+  - Note: the lone `/* v8 ignore */` in `CellEditor.tsx` (the trailing-blur double-commit guard) **stays** — the browser suite asserts it live, but unit coverage can't merge browser coverage into the gate, and happy-dom never fires that blur.
 
 **Done when:** paste a block from a spreadsheet + fill-down write **editable cells only**; copy
 round-trips to/from Excel; non-editable targets are skipped and **reported**; one `onBulkEdit` →

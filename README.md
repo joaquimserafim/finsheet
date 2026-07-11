@@ -9,16 +9,16 @@
 [![license: MIT](https://img.shields.io/npm/l/finsheet.svg)](LICENSE)
 
 A headless-leaning React grid for **financial statements** — sticky headers, tabular numerics,
-subtotal/total rows, and (soon) three edit modes — without the row-model abstraction tax of a
-general table library.
+subtotal/total rows, and three edit modes (`view` / `edit` / `bulk`) — without the row-model
+abstraction tax of a general table library.
 
 Statements are *authored structure*, not aggregated data, so rows are a **discriminated union**
 (`section · line · subtotal · total · spacer`) and rendering is a `switch` on `kind`. Subtotals and
 totals are first-class row kinds, not a config flag.
 
 > **Status:** `v0.1.0` ships the **read-only** grid. `v0.2.0` adds **single-cell editing**
-> (`mode="edit"`); range select + paste (`bulk`) and virtualization follow. See
-> [docs/ROADMAP.md](docs/ROADMAP.md).
+> (`mode="edit"`) and **bulk mode** (`mode="bulk"` — range select + clipboard + fill); virtualization
+> follows. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Requirements
 
@@ -89,8 +89,9 @@ label. See [src/types.ts](src/types.ts) for the full model.
 | --- | --- | --- | --- |
 | `model` | `GridModel` | — | **Required.** Controlled; the grid never mutates it. |
 | `defaultFormat` | `FormatOptions` | — | Statement-wide accounting format (e.g. `{ scale: "thousands" }`). |
-| `mode` | `"view" \| "edit"` | `"view"` | `"edit"` turns numeric `line` cells into an editing surface (pair with `onEdit`). |
-| `onEdit` | `(change: CellEdit) => void` | — | Fires on each committed edit. Apply it and pass a fresh `model` back. |
+| `mode` | `"view" \| "edit" \| "bulk"` | `"view"` | `"edit"` = single-cell editing; `"bulk"` adds range select + clipboard + fill (a strict superset of `"edit"`). |
+| `onEdit` | `(change: CellEdit) => void` | — | Fires on each committed single-cell edit. Apply it and pass a fresh `model` back. |
+| `onBulkEdit` | `(change: BulkEdit) => void` | — | Fires once per bulk op (paste / cut / fill / clear) in `"bulk"` mode. Apply every `edit` and pass one fresh `model` back. |
 | `stickyFooter` | `boolean` | `true` | Pin the trailing `total` to a sticky footer. `false` → inline, no footer. |
 | `theme` | `"light" \| "dark"` | — | Force the color theme (stamps `data-theme`). Omit to follow the OS. |
 | `caption` | `ReactNode` | — | Rendered as `<caption>`; supplies the table's accessible name. |
@@ -144,8 +145,78 @@ real number. `onEdit` receives `{ rowId?, rowIndex, columnId, value }` — `valu
 `number`, or `null` when the cell was cleared. Full example:
 [examples/editable-statement.tsx](examples/editable-statement.tsx).
 
-> Range select + copy/paste (to and from a spreadsheet) and fill-down arrive with `bulk` mode; see
-> the [roadmap](docs/ROADMAP.md).
+> Range select + copy/paste (to and from a spreadsheet) and fill-down live in `bulk` mode, below.
+
+## Bulk mode (`mode="bulk"`)
+
+`bulk` is a strict **superset of `edit`** — every single-cell affordance above still works and still
+fires `onEdit` — plus rectangular range selection and the spreadsheet gestures: clipboard copy/paste
+(Excel/Sheets-compatible), fill, and range-clear. It stays a **controlled component**: each *bulk*
+operation fires `onBulkEdit` **exactly once**, so one paste is one re-render and one undo step.
+
+```tsx
+import { type BulkEdit, type CellEdit, Grid, type GridModel } from "finsheet"
+import { useState } from "react"
+
+// Apply a whole bulk op (many cells across many rows) in one fresh model.
+function applyBulk(model: GridModel, { edits }: BulkEdit): GridModel {
+	if (edits.length === 0) return model
+	const byRow = new Map<number, CellEdit[]>()
+	for (const edit of edits) {
+		const list = byRow.get(edit.rowIndex)
+		if (list) list.push(edit)
+		else byRow.set(edit.rowIndex, [edit])
+	}
+	return {
+		columns: model.columns,
+		rows: model.rows.map((row, i) => {
+			const rowEdits = byRow.get(i)
+			if (!rowEdits || !("values" in row)) return row
+			const values = { ...row.values }
+			for (const e of rowEdits) values[e.columnId] = e.value
+			return { ...row, values }
+		}),
+	}
+}
+
+// `onEdit` still carries single-cell commits; `onBulkEdit` carries paste / cut / fill / clear.
+<Grid model={model} mode="bulk"
+	onEdit={(c) => setModel((m) => applyEdit(m, c))}
+	onBulkEdit={(op) => setModel((m) => applyBulk(m, op))}
+/>
+```
+
+| Key | Action |
+| --- | --- |
+| Shift + Arrow · Shift + click · drag | extend the selection into a rectangle |
+| Cmd/Ctrl + A | select every editable cell |
+| Cmd/Ctrl + C / X / V | copy / cut / paste (tab-separated, Excel-compatible) |
+| Cmd/Ctrl + D / R | fill **down** / **right** from the range's leading edge |
+| Delete / Backspace | clear the range (a single cell clears one, via `onEdit`) |
+| Esc | collapse the selection to the focus cell |
+
+**Editable cells only, always.** Paste, fill and clear write **only** `line` cells in numeric,
+unlocked columns — a value landing on a subtotal, total, section or locked column is dropped and
+**reported** (never silently written). Copy is inclusive, so you can lift a whole block — computed
+rows and all — into a spreadsheet.
+
+**Raw units, TSV wire format.** The clipboard is plain **TSV** in **raw stored units** (the unscaled
+number), so a block round-trips losslessly to and from Excel/Sheets even when the statement is shown
+"in thousands". Paste is **atomic**: if any cell fails to parse, nothing is written.
+
+`onBulkEdit` receives a `BulkEdit` — apply every `edit` (each is the same `{ rowId?, rowIndex,
+columnId, value }` shape as `onEdit`) and surface `rejected` / `skipped` if you want to warn:
+
+```ts
+interface BulkEdit {
+	kind: "paste" | "fill-down" | "fill-right" | "clear"
+	edits: CellEdit[]         // editable + actually-changed cells only (no-ops suppressed)
+	rejected?: RejectedCell[] // paste cells that didn't parse → `edits` is empty (atomic)
+	skipped?: SkippedCell[]   // non-editable targets a paste dropped — reported, never silent
+}
+```
+
+Full example: [examples/bulk-statement.tsx](examples/bulk-statement.tsx).
 
 ## Formatting
 
@@ -194,8 +265,9 @@ token list at the top of [src/styles.css](src/styles.css).
 - **Single formatter per grid.** A mixed-unit statement (a `% margin` column beside currency) needs
   per-column formatting — deferred to a later `Column.format`. Today all value cells use
   `formatAccounting` + `defaultFormat`.
-- **Editing is single-cell** (`v0.2.0`). One cell at a time; range select, copy/paste, and
-  fill-down (`bulk` mode), plus virtualization for long statements, are on the roadmap.
+- **Editing writes editable cells only.** In `edit`/`bulk` only `line` cells in numeric, unlocked
+  columns accept input — enforced by row `kind`, not a runtime flag. Virtualization for very long
+  statements is still on the roadmap.
 
 ## Development
 

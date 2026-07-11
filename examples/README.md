@@ -12,6 +12,7 @@ import "finsheet/styles.css";
 | --- | --- |
 | [read-only-statement.tsx](read-only-statement.tsx) | The basics — a read-only P&L: sticky header + label column, a subtotal, a pinned grand-total footer. |
 | [editable-statement.tsx](editable-statement.tsx) | `mode="edit"` — controlled single-cell editing: keyboard nav, `onEdit`, a locked (computed) column. |
+| [bulk-statement.tsx](bulk-statement.tsx) | `mode="bulk"` — range select + clipboard copy/paste (Excel TSV) + fill/clear, applied via one `onBulkEdit` per op. |
 | [balance-sheet.tsx](balance-sheet.tsx) | Several `total` rows — a mid-sheet "Total assets" stays inline; only the trailing total pins to the footer. |
 | [theming.tsx](theming.tsx) | Custom `--fs-*` tokens, `data-theme`, and a statement-wide `defaultFormat` scale. |
 
