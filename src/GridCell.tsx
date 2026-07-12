@@ -4,7 +4,7 @@ import type { CellValue, Column } from "./types";
 interface GridCellProps {
 	column: Column;
 	value: CellValue | undefined;
-	formatValue: (value: CellValue | undefined) => string;
+	formatValue: (value: CellValue | undefined, column: Column) => string;
 }
 
 /**
@@ -22,7 +22,7 @@ export function GridCell({ column, value, formatValue }: GridCellProps) {
 	const { className, align } = cellPresentation(column, false);
 	return (
 		<td className={className} data-align={align}>
-			{formatValue(value)}
+			{formatValue(value, column)}
 		</td>
 	);
 }

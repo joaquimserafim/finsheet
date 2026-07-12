@@ -13,7 +13,7 @@ interface GridRowProps {
 	columns: readonly Column[];
 	/** Whether the label column (columns[0]) pins to the left. Resolved once by Grid. */
 	stickyLeft: boolean;
-	formatValue: (value: CellValue | undefined) => string;
+	formatValue: (value: CellValue | undefined, column: Column) => string;
 	/** The editing controller in `edit` mode, or `null` in `view` mode. */
 	editing: GridEditing | null;
 }

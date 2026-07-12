@@ -22,7 +22,7 @@ interface EditableCellProps {
 	rowLabel: string;
 	column: Column;
 	value: CellValue | undefined;
-	formatValue: (value: CellValue | undefined) => string;
+	formatValue: (value: CellValue | undefined, column: Column) => string;
 }
 
 function EditableCellImpl({
@@ -79,7 +79,7 @@ function EditableCellImpl({
 					ariaLabel={column.header ? `${rowLabel}, ${column.header}` : rowLabel}
 				/>
 			) : (
-				formatValue(value)
+				formatValue(value, column)
 			)}
 		</td>
 	);

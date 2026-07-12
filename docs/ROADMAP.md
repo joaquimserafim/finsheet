@@ -234,7 +234,7 @@ panel (both verifiers PROCEED).*
 - [x] pure `formatColumnValue(value, format, defaultFormat)` — undefined → byte-identical `formatAccounting`; else dispatch over `{...defaultFormat, ...format}`; 7 tests, 100% branch (235 tests / 100% cov)
 
 **Stage 2 — Render seam** (wire it in; memo + snapshot parity)
-- [ ] widen the one `formatValue` closure to `(value, column)` (memo key UNCHANGED); existing snapshots don't churn
+- [x] widen the one `formatValue` closure to `(value, column)` (memo key UNCHANGED); existing snapshots don't churn (235 tests green, no `__snapshots__` diff)
 - [ ] add one mixed-format snapshot (% margin + $ currency + accounting)
 - [ ] re-prove the Epic 7 `Grid = 0` invariant with a formatted column
 - [ ] display-only + raw-seam battery (editor seed / `onEdit` / copy / paste / fill all stay raw; `12.5%` paste rejected)

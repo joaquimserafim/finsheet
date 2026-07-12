@@ -1,9 +1,9 @@
 import { type ReactElement, type ReactNode, useMemo } from "react";
+import { formatColumnValue } from "./columnFormat";
 import type { FormatOptions } from "./format";
-import { formatAccounting } from "./format";
 import { GridRow } from "./GridRow";
 import { cellPresentation, colWidth } from "./internal";
-import type { BulkEdit, CellEdit, CellValue, GridMode, GridModel, Row } from "./types";
+import type { BulkEdit, CellEdit, CellValue, Column, GridMode, GridModel, Row } from "./types";
 import { useGridEditing } from "./useGridEditing";
 
 export interface GridProps {
@@ -106,7 +106,8 @@ export function Grid({
 	// GridRow memo boundary Epic 7 relies on.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the primitive FormatOptions fields (not the object) on purpose — depending on `defaultFormat` would rebuild formatValue for every inline-literal prop and defeat the memo seam.
 	const formatValue = useMemo(
-		() => (value: CellValue | undefined) => formatAccounting(value, defaultFormat),
+		() => (value: CellValue | undefined, column: Column) =>
+			formatColumnValue(value, column.format, defaultFormat),
 		[
 			defaultFormat?.scale,
 			defaultFormat?.precision,

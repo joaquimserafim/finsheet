@@ -89,16 +89,14 @@ The single display hook. The raw seams (`rawCellText`, `parseAccounting`, `compu
 `isCellEditable`) are **deliberately not touched** — that is what makes "display-only, raw
 clipboard" true by construction.
 
-- [ ] **Widen the `formatValue` closure to `(value, column) => string` and prove parity.** In
-  `Grid.tsx` delegate to `formatColumnValue(value, column.format, defaultFormat)` with the useMemo
-  dependency array **UNCHANGED** (still the five primitive `defaultFormat` fields — `column` flows
-  as an *argument*, never into the memo key). Update the type in `GridRowProps` / `GridCellProps` /
-  `EditableCellProps` and pass `column` at the two display call sites (in `GridCell` and the
-  `EditableCell` non-editing branch — both already receive `column`, so no new prop plumbing);
-  `EditableCell`'s editor seed (`rawCellText`) and `GridRow`'s body are untouched. **Acceptance:
-  the existing three `Grid.snapshot.test.tsx` snapshots pass with no `__snapshots__` churn (green
-  *without* `vitest -u`)** — the wiring can't merge if it changes any un-formatted output, which is
-  the objective proof of "additive".
+- [x] **Widen the `formatValue` closure to `(value, column) => string` — parity proven.** `Grid.tsx`
+  now delegates to `formatColumnValue(value, column.format, defaultFormat)`, useMemo deps **UNCHANGED**
+  (the five primitive `defaultFormat` fields — `column` is an argument, never the memo key). Signature
+  threaded through `GridRowProps` / `GridCellProps` / `EditableCellProps`; `column` passed at the two
+  display call sites (`GridCell` + the `EditableCell` non-editing branch); the editor seed
+  (`rawCellText`) and `GridRow`'s body untouched. **Acceptance met: zero `__snapshots__` churn** (235
+  tests green under `test:run`, not `-u`; `git diff src/__snapshots__` empty) — objective proof it's
+  additive. typecheck + lint clean.
 - [ ] **Add one mixed-format snapshot.** Lock a mixed statement — a `% margin` column + a `$`
   currency column beside plain accounting columns — as a new `Grid.snapshot.test.tsx` case, so the
   formatted output is itself pinned.
