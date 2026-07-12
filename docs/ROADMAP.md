@@ -237,7 +237,7 @@ panel (both verifiers PROCEED).*
 - [x] widen the one `formatValue` closure to `(value, column)` (memo key UNCHANGED); existing snapshots don't churn (235 tests green, no `__snapshots__` diff)
 - [x] add one mixed-format snapshot (% margin + $/€ currency + accounting) — pins `$1,000` / `(€600)` / `40.0%`; 236 tests
 - [x] re-prove the Epic 7 `Grid = 0` invariant with a formatted column (Grid.perf.test.tsx; 237 tests)
-- [ ] display-only + raw-seam battery (editor seed / `onEdit` / copy / paste / fill all stay raw; `12.5%` paste rejected)
+- [x] display-only + raw-seam battery — editor seed / `onEdit` / copy / paste / fill all raw; `12.5%` paste rejected (Grid.format.test.tsx, 6 tests; 243 tests / 100% cov)
 
 **Stage 3 — Docs, example, gallery & changelog**
 - [ ] README + `Grid.tsx` JSDoc truthing (delete the "single formatter" limitation; document `Column.format`)

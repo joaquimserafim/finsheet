@@ -105,13 +105,14 @@ clipboard" true by construction.
   (currency + percent columns) + a test asserting `Grid` re-renders **0** across move / open-editor /
   editor-keystroke / commit / shift-extend on the formatted path — proving `column`-as-argument kept the
   memo seam intact. 237 tests, 100% cov.
-- [ ] **Display-only + raw-seam battery.** Tests proving `Column.format` never leaks past display:
-  a percent/currency cell **seeds the editor from `rawCellText`** (input shows `0.125`, not
-  `12.5%`); `onEdit` emits the **raw parsed number** (type `0.2` → `0.2`, never `0.002`/`20`);
-  `computeCopy` emits **raw TSV** (`0.125`, not `12.5%`); paste writes raw and a pasted `12.5%` is
-  **rejected atomically** (lands in `rejected[]`, edits empty); fill / range-clear / cut stay raw;
-  and the editable guard is format-blind (a formatted `editable: false` column is a plain
-  `GridCell`, never an input).
+- [x] **Display-only + raw-seam battery.** New `Grid.format.test.tsx` (6 tests): a currency/percent
+  cell **seeds the editor from `rawCellText`** (`$1,000`→`1000`, `40.0%`→`0.4`); `onEdit` emits the
+  **raw parsed number** (`0.2`, never `0.002`/`20`); copy emits **raw TSV** (`1000\t0.4`, not
+  `$1,000\t40.0%`); a pasted `12.5%` is **rejected atomically** (`edits` empty, `rejected` reported —
+  `parseAccounting` strips `$` but rejects `%`); fill-down writes the **raw** `0.4`; and the editable
+  guard is format-blind (a formatted `editable: false` column is a plain non-input cell, still
+  formatted). *(Cut / clear share the same format-blind clipboard + reducer seams, covered raw in
+  `Grid.bulk.test.tsx`.)* **243 tests / 100% cov.** ✅ **Stage 2 complete.**
 
 ## Stage 3 — Docs, example, gallery & changelog
 
