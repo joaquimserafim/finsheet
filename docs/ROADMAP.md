@@ -222,11 +222,36 @@ the deferred positions and freezes the contract**. Each epic below is a *sketch*
 design-panel scope in `docs/epics/` before build, like Epics 5–8.
 
 ### Epic 9 — Per-column formatting
-- [ ] `Column.format` / `scale` / `precision` — a `% margin` or `YoY growth %` column beside currency
-  (today's single-formatter-per-grid can't express it; already flagged in Notes & limitations)
-- [ ] threads through `formatAccounting`; a per-column override beats `defaultFormat`; **raw units
-  preserved** for editing + the clipboard (edit reveals the unscaled number regardless of column format)
-- **Non-breaking** — additive optional fields on `Column`; a single-format grid renders unchanged.
+*The first epic of v1.0.0. One optional, frozen-at-1.0 field — `Column.format` — so a statement can mix a
+**currency** column, a **% margin** column, and plain **accounting** columns; **additive** (a column without
+`format` renders byte-identically), **display-only** (edit / `onEdit` / `onBulkEdit` / clipboard stay RAW
+units), and **memo-safe** (the one `formatValue` closure gains a `column` arg — the Epic 7 `Grid = 0` seam
+holds). Full scope + resolved gates in [docs/epics/epic-9.md](epics/epic-9.md), scoped via a 5-lens design
+panel (both verifiers PROCEED).*
+
+**Stage 1 — Pure core** (new `src/columnFormat.ts`, 100% node-covered, no DOM)
+- [ ] `ColumnFormat` union (arms = exported FormatOptions/CurrencyOptions/PercentOptions, tagged `type`, accounting untagged) + `Column.format?`; export from index.ts; types.test.ts compile guard
+- [ ] pure `formatColumnValue(value, format, defaultFormat)` — undefined → byte-identical `formatAccounting`; else dispatch over `{...defaultFormat, ...format}`; 100% branch tests
+
+**Stage 2 — Render seam** (wire it in; memo + snapshot parity)
+- [ ] widen the one `formatValue` closure to `(value, column)` (memo key UNCHANGED); existing snapshots don't churn
+- [ ] add one mixed-format snapshot (% margin + $ currency + accounting)
+- [ ] re-prove the Epic 7 `Grid = 0` invariant with a formatted column
+- [ ] display-only + raw-seam battery (editor seed / `onEdit` / copy / paste / fill all stay raw; `12.5%` paste rejected)
+
+**Stage 3 — Docs, example, gallery & changelog**
+- [ ] README + `Grid.tsx` JSDoc truthing (delete the "single formatter" limitation; document `Column.format`)
+- [ ] `examples/mixed-format.tsx` + examples index
+- [ ] mixed-format gallery shot + `[Unreleased]` CHANGELOG entry — **no version bump** (Epic 12)
+
+**Founder gates (resolve before Stage 1 freezes):** percent stores the **ratio** (`0.125`) vs percentage
+(`12.5`) [headline]; the exact `Column.format` name / discriminant; copy+paste stays raw vs understands
+formatted text; percent precision inheritance. Recommendations in epic-9.md.
+
+**Done when:** `Column.format` (accounting / currency / percent) selectable per column; pure resolver
+100%-covered with the no-format branch byte-identical to today; the seam is column-aware with `Grid = 0`
+re-proven + snapshots unblessed (+1 mixed); the display-only battery is green; docs truthed. **Non-breaking**,
+additive optional `Column` field, no version bump.
 
 ### Epic 10 — Grouped column headers
 - [ ] `Column.group` — band `Actual │ Budget │ Δ` under a period super-header (the comparative-statement
