@@ -235,7 +235,7 @@ panel (both verifiers PROCEED).*
 
 **Stage 2 — Render seam** (wire it in; memo + snapshot parity)
 - [x] widen the one `formatValue` closure to `(value, column)` (memo key UNCHANGED); existing snapshots don't churn (235 tests green, no `__snapshots__` diff)
-- [ ] add one mixed-format snapshot (% margin + $ currency + accounting)
+- [x] add one mixed-format snapshot (% margin + $/€ currency + accounting) — pins `$1,000` / `(€600)` / `40.0%`; 236 tests
 - [ ] re-prove the Epic 7 `Grid = 0` invariant with a formatted column
 - [ ] display-only + raw-seam battery (editor seed / `onEdit` / copy / paste / fill all stay raw; `12.5%` paste rejected)
 

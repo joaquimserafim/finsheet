@@ -97,9 +97,10 @@ clipboard" true by construction.
   (`rawCellText`) and `GridRow`'s body untouched. **Acceptance met: zero `__snapshots__` churn** (235
   tests green under `test:run`, not `-u`; `git diff src/__snapshots__` empty) — objective proof it's
   additive. typecheck + lint clean.
-- [ ] **Add one mixed-format snapshot.** Lock a mixed statement — a `% margin` column + a `$`
-  currency column beside plain accounting columns — as a new `Grid.snapshot.test.tsx` case, so the
-  formatted output is itself pinned.
+- [x] **Add one mixed-format snapshot.** New `Grid.snapshot.test.tsx` case (`mixedFormat`): a `$`
+  currency + `€` currency + `%` margin column beside the accounting label. The blessed snapshot pins
+  the formatted markup — `$1,000`, `(€600)`, `40.0% / 62.5% / 44.4%` — verified in the `.snap`. 236
+  tests; the existing three snapshots unchanged (only 1 written).
 - [ ] **Re-prove the Epic 7 invariant under formats.** Extend `Grid.perf.test.tsx` with a model
   carrying a `Column.format` column and assert `Grid` re-renders **0** times across
   move / open-editor / editor-keystroke / commit / shift-extend — the widened signature is only

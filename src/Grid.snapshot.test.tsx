@@ -36,6 +36,42 @@ const statement: GridModel = {
 	],
 };
 
+/**
+ * A mixed-format statement (Epic 9): a `$` currency column, a `€` currency column, and a
+ * `%` margin column (stored as a ratio) beside the plain accounting label. Pins the FORMATTED
+ * markup — `$1,000`, `(€600)`, `40.0%` — so per-column display can't regress silently.
+ */
+const mixedFormat: GridModel = {
+	columns: [
+		{ id: "line", header: "", sticky: "left", width: "20ch" },
+		{ id: "revenue", header: "Revenue", numeric: true, format: { type: "currency" } },
+		{ id: "cost", header: "Cost", numeric: true, format: { type: "currency", symbol: "€" } },
+		{
+			id: "margin",
+			header: "Margin",
+			numeric: true,
+			editable: false,
+			format: { type: "percent" },
+		},
+	],
+	rows: [
+		{ kind: "section", label: "Revenue" },
+		{
+			kind: "line",
+			label: "Product",
+			depth: 1,
+			values: { revenue: 1000, cost: -600, margin: 0.4 },
+		},
+		{
+			kind: "line",
+			label: "Services",
+			depth: 1,
+			values: { revenue: 240, cost: -90, margin: 0.625 },
+		},
+		{ kind: "total", label: "Total", values: { revenue: 1240, cost: -690, margin: 0.444 } },
+	],
+};
+
 describe("rendered-markup snapshots", () => {
 	test("view mode — the full read-only statement", () => {
 		const { container } = render(<Grid model={statement} caption="Income statement" />);
@@ -51,6 +87,11 @@ describe("rendered-markup snapshots", () => {
 		const { container } = render(
 			<Grid model={statement} defaultFormat={{ scale: "thousands" }} stickyFooter={false} />,
 		);
+		expect(container.firstChild).toMatchSnapshot();
+	});
+
+	test("mixed per-column formats — $ / € currency + % margin (Epic 9)", () => {
+		const { container } = render(<Grid model={mixedFormat} caption="Mixed formats" />);
 		expect(container.firstChild).toMatchSnapshot();
 	});
 });

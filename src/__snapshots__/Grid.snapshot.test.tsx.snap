@@ -214,6 +214,167 @@ exports[`rendered-markup snapshots > edit mode — roving tabindex, data-coords,
 </div>
 `;
 
+exports[`rendered-markup snapshots > mixed per-column formats — $ / € currency + % margin (Epic 9) 1`] = `
+<div
+  class="finsheet"
+>
+  <table
+    class="finsheet-table"
+  >
+    <caption>
+      Mixed formats
+    </caption>
+    <colgroup>
+      <col
+        style="width: 20ch;"
+      />
+      <col />
+      <col />
+      <col />
+    </colgroup>
+    <thead>
+      <tr>
+        <th
+          class="is-sticky"
+          data-align="left"
+          scope="col"
+        />
+        <th
+          class="is-num"
+          data-align="right"
+          scope="col"
+        >
+          Revenue
+        </th>
+        <th
+          class="is-num"
+          data-align="right"
+          scope="col"
+        >
+          Cost
+        </th>
+        <th
+          class="is-num"
+          data-align="right"
+          scope="col"
+        >
+          Margin
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        data-kind="section"
+      >
+        <th
+          class="is-sticky"
+          data-align="left"
+          scope="row"
+          style="--fs-depth: 0;"
+        >
+          Revenue
+        </th>
+        <td
+          colspan="3"
+        />
+      </tr>
+      <tr
+        data-kind="line"
+      >
+        <th
+          class="is-sticky"
+          data-align="left"
+          scope="row"
+          style="--fs-depth: 1;"
+        >
+          Product
+        </th>
+        <td
+          class="is-num"
+          data-align="right"
+        >
+          $1,000
+        </td>
+        <td
+          class="is-num"
+          data-align="right"
+        >
+          (€600)
+        </td>
+        <td
+          class="is-num"
+          data-align="right"
+        >
+          40.0%
+        </td>
+      </tr>
+      <tr
+        data-kind="line"
+      >
+        <th
+          class="is-sticky"
+          data-align="left"
+          scope="row"
+          style="--fs-depth: 1;"
+        >
+          Services
+        </th>
+        <td
+          class="is-num"
+          data-align="right"
+        >
+          $240
+        </td>
+        <td
+          class="is-num"
+          data-align="right"
+        >
+          (€90)
+        </td>
+        <td
+          class="is-num"
+          data-align="right"
+        >
+          62.5%
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr
+        data-kind="total"
+      >
+        <th
+          class="is-sticky"
+          data-align="left"
+          scope="row"
+          style="--fs-depth: 0;"
+        >
+          Total
+        </th>
+        <td
+          class="is-num"
+          data-align="right"
+        >
+          $1,240
+        </td>
+        <td
+          class="is-num"
+          data-align="right"
+        >
+          (€690)
+        </td>
+        <td
+          class="is-num"
+          data-align="right"
+        >
+          44.4%
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+`;
+
 exports[`rendered-markup snapshots > thousands scale + inline (non-sticky) trailing total 1`] = `
 <div
   class="finsheet"
