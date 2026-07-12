@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import type { Column, GridModel } from "./index";
+import type { Column, ColumnFormat, GridModel } from "./index";
 
 /**
  * These fixtures are primarily a **compile-time guard**: annotating each literal
@@ -189,6 +189,92 @@ function sumLineCells(model: GridModel, columnId: Column["id"]): number {
 	}
 	return sum;
 }
+
+/**
+ * A mixed-format statement (Epic 9): a `$` currency column, a `%` margin column
+ * (stored as a RATIO — `0.32` renders "32.0%"), a plain accounting column (no
+ * `format`), and an untagged-accounting scaled column — all in one grid. This is a
+ * compile-time guard on `Column.format`: every arm is accepted where it belongs and
+ * omission still compiles.
+ */
+const mixedFormat: GridModel = {
+	columns: [
+		{ id: "line", header: "", sticky: "left", width: "22ch" },
+		{ id: "revenue", header: "Revenue", numeric: true, format: { type: "currency" } },
+		{
+			id: "revenueEur",
+			header: "Revenue (€000s)",
+			numeric: true,
+			format: { type: "currency", symbol: "€", scale: "thousands" },
+		},
+		{ id: "units", header: "Units", numeric: true }, // no format ⇒ accounting default
+		{ id: "scaled", header: "In thousands", numeric: true, format: { scale: "thousands" } }, // untagged accounting
+		{
+			id: "margin",
+			header: "Margin",
+			numeric: true,
+			editable: false,
+			format: { type: "percent" },
+		},
+	],
+	rows: [
+		{ kind: "section", label: "Revenue" },
+		{
+			kind: "line",
+			label: "Product",
+			depth: 1,
+			values: {
+				revenue: 1000,
+				revenueEur: 1_000_000,
+				units: 42,
+				scaled: 1_234_567,
+				margin: 0.32,
+			},
+		},
+		{
+			kind: "subtotal",
+			label: "Total",
+			values: {
+				revenue: 1000,
+				revenueEur: 1_000_000,
+				units: 42,
+				scaled: 1_234_567,
+				margin: 0.32,
+			},
+		},
+	],
+};
+
+// Each arm is accepted where it belongs; the tagged union narrows on `type`.
+const accountingFormat: ColumnFormat = { scale: "thousands", precision: 0 }; // untagged ⇒ accounting
+const currencyFormat: ColumnFormat = { type: "currency", symbol: "$", scale: "millions" };
+const percentFormat: ColumnFormat = { type: "percent", precision: 1 };
+
+// `symbol` with NO `type` is correctly REJECTED: `symbol` lives only on the currency arm,
+// which requires `type: "currency"`. The union is tight — there is NO silent
+// symbol-on-accounting foot-gun (the scoping note worried there might be; there isn't).
+// @ts-expect-error — symbol requires an explicit `type: "currency"`
+const symbolWithoutType: ColumnFormat = { symbol: "$" };
+
+// `symbol` on an explicit percent arm is a TYPE ERROR (PercentOptions has no `symbol`).
+// @ts-expect-error — symbol is not a PercentOptions field
+const percentWithSymbol: ColumnFormat = { type: "percent", symbol: "$" };
+
+test("mixed-format columns compile, carry their format, and default to accounting", () => {
+	const cols = mixedFormat.columns;
+	expect(cols[1]?.format?.type).toBe("currency");
+	expect(cols[5]?.format?.type).toBe("percent");
+	expect(cols[3]?.format).toBeUndefined(); // no format ⇒ accounting default
+	expect(cols[4]?.format?.type).toBeUndefined(); // untagged accounting: no `type`
+	// Keep the type-guard literals alive (not dead code) so the compile checks run.
+	expect([
+		accountingFormat,
+		currencyFormat,
+		percentFormat,
+		symbolWithoutType,
+		percentWithSymbol,
+	]).toHaveLength(5);
+});
 
 test("the P&L builds and its line cells reconcile to net income", () => {
 	expect(pnl.columns[0]?.id).toBe("line");

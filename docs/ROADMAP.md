@@ -230,7 +230,7 @@ holds). Full scope + resolved gates in [docs/epics/epic-9.md](epics/epic-9.md), 
 panel (both verifiers PROCEED).*
 
 **Stage 1 — Pure core** (new `src/columnFormat.ts`, 100% node-covered, no DOM)
-- [ ] `ColumnFormat` union (arms = exported FormatOptions/CurrencyOptions/PercentOptions, tagged `type`, accounting untagged) + `Column.format?`; export from index.ts; types.test.ts compile guard
+- [x] `ColumnFormat` union (arms = exported FormatOptions/CurrencyOptions/PercentOptions, tagged `type`, accounting untagged) + `Column.format?`; exported from index.ts; types.test.ts compile guard (228 tests / 100% cov)
 - [ ] pure `formatColumnValue(value, format, defaultFormat)` — undefined → byte-identical `formatAccounting`; else dispatch over `{...defaultFormat, ...format}`; 100% branch tests
 
 **Stage 2 — Render seam** (wire it in; memo + snapshot parity)
@@ -244,9 +244,9 @@ panel (both verifiers PROCEED).*
 - [ ] `examples/mixed-format.tsx` + examples index
 - [ ] mixed-format gallery shot + `[Unreleased]` CHANGELOG entry — **no version bump** (Epic 12)
 
-**Founder gates (resolve before Stage 1 freezes):** percent stores the **ratio** (`0.125`) vs percentage
-(`12.5`) [headline]; the exact `Column.format` name / discriminant; copy+paste stays raw vs understands
-formatted text; percent precision inheritance. Recommendations in epic-9.md.
+**Founder gates — RESOLVED (2026-07-12, all as recommended):** percent stores the **ratio** (`0.125`); field
+`format` + discriminant `type` (accounting untagged); copy + paste stay **raw** (`12.5%` paste rejected);
+percent inherits `defaultFormat.precision`. See epic-9.md.
 
 **Done when:** `Column.format` (accounting / currency / percent) selectable per column; pure resolver
 100%-covered with the no-format branch byte-identical to today; the seam is column-aware with `Grid = 0`

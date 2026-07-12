@@ -23,6 +23,8 @@
  * render default, so the everyday line row is just `{ kind: "line", label, values }`.
  */
 
+import type { ColumnFormat } from "./columnFormat";
+
 /** A single value cell. `null` is an explicit blank (renders as a placeholder). */
 export type CellValue = number | null;
 
@@ -63,6 +65,14 @@ export interface Column {
 	readonly editable?: boolean;
 	/** `<colgroup>` width for `table-layout: fixed`. Number = px; string = any CSS length. */
 	readonly width?: number | string;
+	/**
+	 * How THIS column's numbers are displayed (Epic 9): accounting (the default) /
+	 * currency / percent — see {@link ColumnFormat}. **Display only**: editing and the
+	 * clipboard always use the RAW stored value (a percent column stores + reveals a
+	 * ratio, `0.125`, not "12.5%"). Inherits the statement-wide `defaultFormat` and
+	 * overrides per field. Omit ⇒ accounting + `defaultFormat`, exactly as v0.1 / v0.2.
+	 */
+	readonly format?: ColumnFormat;
 }
 
 /** Fields shared by every row kind. */

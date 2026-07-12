@@ -57,20 +57,19 @@ All the new decision branches live here, in a pure module, node-covered **before
 glue — mirroring the `format.ts` / `selection.ts` / `fill.ts` / `clipboard.ts` split the repo
 already uses. Nothing renders differently yet.
 
-- [ ] **Add the `ColumnFormat` union + the `Column.format` field.** New `src/columnFormat.ts`
-  houses the discriminated union (three arms = the already-exported `FormatOptions` /
-  `CurrencyOptions` / `PercentOptions`, tagged by `type`, **accounting untagged**); add
-  `readonly format?: ColumnFormat` to `Column` in `types.ts`, importing the type with `import type`.
-  *(The type lives in its own module beside its resolver because `types.ts` is deliberately
-  runtime-free — the Stage-1 resolver can't live there; this is NOT about a type-only import cycle,
-  which TS supports fine.)* Export `ColumnFormat` from `index.ts` (alongside the exported Options
-  types, so the frozen v1.0 surface is complete). Extend the compile-time sample in `types.test.ts`
-  with a mixed-format statement: omission still compiles; all three arms accepted; **`symbol` on a
-  percent arm is a `// @ts-expect-error`** (an unused `@ts-expect-error` is itself a CI error, so
-  the guard fails loudly if TS ever stops rejecting it); plus one negative test documenting the
-  known-and-intentional foot-gun that `{ symbol: "$" }` **with no `type`** type-checks as an
-  accounting format (permissive-union excess-property) and its `symbol` is a silent no-op. Additive
-  + optional ⇒ renders unchanged with nothing consuming it yet.
+- [x] **Add the `ColumnFormat` union + the `Column.format` field.** New `src/columnFormat.ts` houses
+  the discriminated union (arms = the exported `FormatOptions` / `CurrencyOptions` / `PercentOptions`,
+  tagged by `type`, **accounting untagged**); `readonly format?: ColumnFormat` added to `Column`
+  (`import type`); `ColumnFormat` exported from `index.ts` (frozen v1.0 surface). `types.test.ts`
+  gained a mixed-format fixture + type-level guards: omission compiles, all three arms accepted,
+  `symbol` on a percent arm is a passing `// @ts-expect-error`. **As-built correction:** the scoping
+  worry about a `{ symbol }`-without-`type` foot-gun was WRONG — the union is *tighter* than predicted;
+  TS **rejects** symbol-without-`type` (`symbol` lives only on the currency arm, which requires
+  `type: "currency"`), so that test is now a passing `// @ts-expect-error` documenting the correct
+  rejection, not a foot-gun. **228 tests / 100% cov** (the type-only file adds 0 statements),
+  snapshots unblessed, typecheck + lint green. *(The `columnFormat.ts` split is because `types.ts` is
+  runtime-free, so the Stage-2 resolver can't live there — NOT a type-only import cycle, which TS
+  handles fine.)*
 - [ ] **Add the pure `formatColumnValue(value, format, defaultFormat)` resolver**, reusing
   `format.ts` verbatim: `format === undefined` ⇒ `formatAccounting(value, defaultFormat)`
   (allocation-free fall-through — this exactness is what makes snapshot parity fall out for free);
@@ -191,9 +190,12 @@ clipboard" true by construction.
 - **No version bump / publish.** The CHANGELOG entry lands under `[Unreleased]`; the v1.0.0 release
   and `GridModel` freeze are Epic 12.
 
-## Founder gates
+## Founder gates — RESOLVED (2026-07-12)
 
-Genuine taste calls the maintainer must ratify — recommendations given, none silently invented.
+All four ratified **as recommended** (maintainer, 2026-07-12): **(1)** percent stores the **ratio**
+(`0.125`); **(2)** field `format`, discriminant `type`, accounting untagged; **(3)** copy + paste stay
+**raw** for 1.0 (`12.5%` paste rejected-and-surfaced); **(4)** percent **inherits**
+`defaultFormat.precision` uniformly. The rationale for each is recorded below.
 
 1. **Percent storage — ratio (`0.125`) vs percentage (`12.5`)? [THE headline call; must resolve
    *before* Stage 1 freezes.]** It forks the *formatter path*, not just the UX. **Ratio** reuses the

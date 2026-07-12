@@ -6,6 +6,7 @@
  */
 export const VERSION = "0.2.0";
 
+export type { ColumnFormat } from "./columnFormat";
 export type {
 	CurrencyOptions,
 	FormatOptions,
