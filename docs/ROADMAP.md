@@ -240,7 +240,7 @@ panel (both verifiers PROCEED).*
 - [x] display-only + raw-seam battery — editor seed / `onEdit` / copy / paste / fill all raw; `12.5%` paste rejected (Grid.format.test.tsx, 6 tests; 243 tests / 100% cov)
 
 **Stage 3 — Docs, example, gallery & changelog**
-- [ ] README + `Grid.tsx` JSDoc truthing (delete the "single formatter" limitation; document `Column.format`)
+- [x] README + `Grid.tsx` JSDoc truthing — "Per-column formats" section + props pointer; deleted the "single formatter" limitation; fixed the stale defaultFormat JSDoc
 - [ ] `examples/mixed-format.tsx` + examples index
 - [ ] mixed-format gallery shot + `[Unreleased]` CHANGELOG entry — **no version bump** (Epic 12)
 

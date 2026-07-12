@@ -10,10 +10,9 @@ export interface GridProps {
 	/** Controlled data. The grid never mutates it. */
 	readonly model: GridModel;
 	/**
-	 * Statement-wide accounting format threaded to every value cell — e.g.
-	 * `{ scale: "thousands" }` for a statement shown in thousands, or `precision`.
-	 * Omit for `formatAccounting` defaults (units, 0 dp, parens, "–" blank, en-US).
-	 * Distinct from the deferred per-column `Column.format`.
+	 * Statement-wide accounting format — the BASE every value column inherits, and can override
+	 * per column via `Column.format`. E.g. `{ scale: "thousands" }` shows the whole statement in
+	 * thousands. Omit for `formatAccounting` defaults (units, 0 dp, parens, "–" blank, en-US).
 	 */
 	readonly defaultFormat?: FormatOptions;
 	/**

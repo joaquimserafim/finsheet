@@ -90,7 +90,7 @@ label. See [src/types.ts](src/types.ts) for the full model.
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `model` | `GridModel` | — | **Required.** Controlled; the grid never mutates it. |
-| `defaultFormat` | `FormatOptions` | — | Statement-wide accounting format (e.g. `{ scale: "thousands" }`). |
+| `defaultFormat` | `FormatOptions` | — | Statement-wide accounting format base (e.g. `{ scale: "thousands" }`); each column can override via `Column.format` (see [Per-column formats](#per-column-formats)). |
 | `mode` | `"view" \| "edit" \| "bulk"` | `"view"` | `"edit"` = single-cell editing; `"bulk"` adds range select + clipboard + fill (a strict superset of `"edit"`). |
 | `onEdit` | `(change: CellEdit) => void` | — | Fires on each committed single-cell edit. Apply it and pass a fresh `model` back. |
 | `onBulkEdit` | `(change: BulkEdit) => void` | — | Fires once per bulk op (paste / cut / fill / clear) in `"bulk"` mode. Apply every `edit` and pass one fresh `model` back. |
@@ -235,8 +235,35 @@ formatCurrency(-1234)                             // "($1,234)"
 formatPercent(0.125)                              // "12.5%"  (input is a ratio)
 ```
 
-`Grid` formats every value cell through `formatAccounting`; `defaultFormat` threads statement-wide
-options (a "shown in thousands" scale, precision, locale) to all of them.
+`Grid` uses `formatAccounting` by default, with `defaultFormat` threading statement-wide options (a
+"shown in thousands" scale, precision, locale) to every value cell.
+
+### Per-column formats
+
+One statement can mix number languages. Set `Column.format` to pick a column's family — accounting
+(the default), **currency**, or **percent**:
+
+```tsx
+const columns = [
+	{ id: "line", header: "", sticky: "left" },
+	{ id: "revenue", header: "Revenue", numeric: true, format: { type: "currency" } },      // "$1,000"
+	{ id: "eur", header: "EUR", numeric: true, format: { type: "currency", symbol: "€" } },  // "€1,000"
+	{ id: "margin", header: "Margin", numeric: true, format: { type: "percent" } },          // 0.32 → "32.0%"
+	{ id: "units", header: "Units", numeric: true },                                          // accounting (default)
+]
+```
+
+- **Inherits `defaultFormat`, overrides per field.** A statement shown "in thousands" keeps its money
+  columns in thousands unless a column restates a field. `type` is optional — omit it (or use
+  `{ scale: … }`) for plain accounting.
+- **Percent stores a ratio.** `formatPercent` takes a ratio, so a `margin` cell holds `0.32` and shows
+  `"32.0%"` — the same value your `profit / revenue` division yields, and what Excel stores internally.
+- **Display only.** Formatting never changes what's stored: editing and the clipboard always use the
+  **raw** number. A `$1,000` cell edits and copies as `1000`; a `32.0%` cell edits and copies as `0.32`.
+  A pasted `"12.5%"` is rejected (parsing stays raw), so a bad paste never silently stores a
+  100×-wrong figure.
+
+Full example: [examples/mixed-format.tsx](examples/mixed-format.tsx).
 
 ## Theming
 
@@ -264,9 +291,6 @@ token list at the top of [src/styles.css](src/styles.css).
   own `overflow` ancestor, or sticky will resolve against the wrong box.
 - **One sticky-left column** — set `sticky: "left"` on `columns[0]` (the label). It's ignored on
   other columns in v1.
-- **Single formatter per grid.** A mixed-unit statement (a `% margin` column beside currency) needs
-  per-column formatting — deferred to a later `Column.format`. Today all value cells use
-  `formatAccounting` + `defaultFormat`.
 - **Editing writes editable cells only.** In `edit`/`bulk` only `line` cells in numeric, unlocked
   columns accept input — enforced by row `kind`, not a runtime flag.
 - **Row virtualization is deferred.** Per-edit work is already O(1) in row count (only the changed

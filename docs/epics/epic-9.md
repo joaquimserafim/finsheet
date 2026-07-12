@@ -116,15 +116,12 @@ clipboard" true by construction.
 
 ## Stage 3 — Docs, example, gallery & changelog
 
-- [ ] **README + in-source truthing.** Document `Column.format` (the three arms, the
-  untagged-accounting default, the per-field merge rule, the percent-stores-a-ratio semantics) and
-  **delete** the "Single formatter per grid … deferred to a later `Column.format`" limitation plus
-  the props-table line that says every value cell uses `formatAccounting`. State loudly that
-  formatted columns are display-only — edit reveal + `onEdit` + `onBulkEdit` + clipboard are all
-  raw units, a % column reveals its raw ratio, and formatted-text paste (`12.5%`) is rejected by
-  design. **Also fix the now-stale JSDoc on the `defaultFormat` prop in `Grid.tsx`** (it calls the
-  per-column `Column.format` "deferred" — no longer true — and says `defaultFormat` is "threaded to
-  every value cell" — it becomes the base each column *inherits* from and can override).
+- [x] **README + in-source truthing.** New "Per-column formats" README subsection (three arms,
+  untagged-accounting default, the per-field merge, percent-stores-a-ratio, and the display-only /
+  raw-clipboard / `12.5%`-rejected notes) + a props-table pointer to it; **deleted** the "Single
+  formatter per grid … deferred" limitation. `Grid.tsx`'s `defaultFormat` JSDoc no longer calls
+  `Column.format` "deferred" or `defaultFormat` "threaded to every value cell" (now: the base each
+  column inherits + can override). No `Single formatter` / `deferred` phrasing left.
 - [ ] **`examples/mixed-format.tsx`** — a `% margin` column + a currency column beside accounting
   columns, typecheck-verified in CI, plus its row in the examples index / `examples/README.md`
   (the repo's per-feature convention).
