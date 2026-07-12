@@ -70,23 +70,18 @@ already uses. Nothing renders differently yet.
   snapshots unblessed, typecheck + lint green. *(The `columnFormat.ts` split is because `types.ts` is
   runtime-free, so the Stage-2 resolver can't live there — NOT a type-only import cycle, which TS
   handles fine.)*
-- [ ] **Add the pure `formatColumnValue(value, format, defaultFormat)` resolver**, reusing
-  `format.ts` verbatim: `format === undefined` ⇒ `formatAccounting(value, defaultFormat)`
-  (allocation-free fall-through — this exactness is what makes snapshot parity fall out for free);
-  otherwise dispatch to `formatAccounting` / `formatCurrency` / `formatPercent` over the per-field
-  merge `{ ...defaultFormat, ...format }`. **Write the exhaustiveness guard on a local typed to the
-  `"accounting" | "currency" | "percent"` union** (`const type = format.type ?? "accounting"`),
-  `switch (type)` with a `never`-guarded default — switching on the `?? "accounting"` *expression*
-  does not narrow `format` to `never`, so the guard must key off the typed local. *(The spread
-  carries the `type` key into `formatCurrency(CurrencyOptions)` etc., which have no `type` field;
-  this compiles because TS suppresses excess-property checks on spread-originated properties, and
-  every formatter destructures only its own fields — do not "fix" it by stripping `type`.)* 100%
-  branch unit tests: undefined → **byte-identical** to `formatAccounting(value, defaultFormat)`;
-  each arm; `defaultFormat` inheritance + per-field override precedence; currency default `$` +
-  symbol override; percent ignoring `scale`; and both precision cases — a percent column under a
-  0-dp `defaultFormat` inherits and renders `13%` (the spread leaves `defaultFormat.precision` in
-  place because an absent key doesn't overwrite it), while with no `defaultFormat` it falls to
-  `formatPercent`'s own 1-dp default (`13.0%`).
+- [x] **Add the pure `formatColumnValue(value, format, defaultFormat)` resolver.** In
+  `columnFormat.ts`: `format === undefined` ⇒ `formatAccounting(value, defaultFormat)`
+  (allocation-free, so snapshot parity is free); else a merged bag `const merged = { ...defaultFormat,
+  ...format }` (assigning to a const also sidesteps the excess-property check on the spread's `type`
+  key) dispatched over a `switch` on a **typed local** (`const type = format.type ?? "accounting"`)
+  to `formatAccounting` / `formatCurrency` / `formatPercent`, with a `never`-guarded default covered
+  by a bogus-cast test (the repo idiom, `Grid.test.tsx:324`). `columnFormat.test.ts` = 7 tests, each
+  arm **cross-checked against the raw formatter**: undefined byte-identical; untagged + explicit
+  accounting; currency default `$` / `€` override / inherited scale; percent `0.125 → 12.5%` + scale
+  can't corrupt a ratio; both precision cases (inherited 0-dp `13%` vs own 1-dp `13.0%`); merge
+  precedence. **235 tests / 100% cov** (607 stmts, 473 branches — no new ignore regions). ✅ **Stage 1
+  complete.**
 
 ## Stage 2 — Render seam (wire it in; memo + snapshot parity)
 

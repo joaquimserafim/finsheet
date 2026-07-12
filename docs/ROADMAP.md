@@ -231,7 +231,7 @@ panel (both verifiers PROCEED).*
 
 **Stage 1 — Pure core** (new `src/columnFormat.ts`, 100% node-covered, no DOM)
 - [x] `ColumnFormat` union (arms = exported FormatOptions/CurrencyOptions/PercentOptions, tagged `type`, accounting untagged) + `Column.format?`; exported from index.ts; types.test.ts compile guard (228 tests / 100% cov)
-- [ ] pure `formatColumnValue(value, format, defaultFormat)` — undefined → byte-identical `formatAccounting`; else dispatch over `{...defaultFormat, ...format}`; 100% branch tests
+- [x] pure `formatColumnValue(value, format, defaultFormat)` — undefined → byte-identical `formatAccounting`; else dispatch over `{...defaultFormat, ...format}`; 7 tests, 100% branch (235 tests / 100% cov)
 
 **Stage 2 — Render seam** (wire it in; memo + snapshot parity)
 - [ ] widen the one `formatValue` closure to `(value, column)` (memo key UNCHANGED); existing snapshots don't churn
