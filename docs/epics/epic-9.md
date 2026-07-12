@@ -101,10 +101,10 @@ clipboard" true by construction.
   currency + `€` currency + `%` margin column beside the accounting label. The blessed snapshot pins
   the formatted markup — `$1,000`, `(€600)`, `40.0% / 62.5% / 44.4%` — verified in the `.snap`. 236
   tests; the existing three snapshots unchanged (only 1 written).
-- [ ] **Re-prove the Epic 7 invariant under formats.** Extend `Grid.perf.test.tsx` with a model
-  carrying a `Column.format` column and assert `Grid` re-renders **0** times across
-  move / open-editor / editor-keystroke / commit / shift-extend — the widened signature is only
-  safe if `Grid = 0` still holds on the new path.
+- [x] **Re-prove the Epic 7 invariant under formats.** `Grid.perf.test.tsx` gained a `formattedModel`
+  (currency + percent columns) + a test asserting `Grid` re-renders **0** across move / open-editor /
+  editor-keystroke / commit / shift-extend on the formatted path — proving `column`-as-argument kept the
+  memo seam intact. 237 tests, 100% cov.
 - [ ] **Display-only + raw-seam battery.** Tests proving `Column.format` never leaks past display:
   a percent/currency cell **seeds the editor from `rawCellText`** (input shows `0.125`, not
   `12.5%`); `onEdit` emits the **raw parsed number** (type `0.2` → `0.2`, never `0.002`/`20`);

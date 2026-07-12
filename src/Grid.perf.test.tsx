@@ -23,6 +23,24 @@ const model: GridModel = {
 	],
 };
 
+/**
+ * Same shape, but the value columns carry a `Column.format` (currency + percent). Epic 9
+ * widened the `formatValue` closure to `(value, column)`; `column` is an ARGUMENT, never a
+ * memo dependency, so the Grid = 0 seam must still hold on the formatted display path.
+ */
+const formattedModel: GridModel = {
+	columns: [
+		{ id: "line", header: "", sticky: "left" },
+		{ id: "revenue", header: "Revenue", numeric: true, format: { type: "currency" } },
+		{ id: "growth", header: "Growth", numeric: true, format: { type: "percent" } },
+	],
+	rows: [
+		{ kind: "section", label: "Revenue" },
+		{ kind: "line", id: "prod", label: "Product", values: { revenue: 1000, growth: 0.12 } },
+		{ kind: "line", label: "Services", values: { revenue: 240, growth: 0.08 } },
+	],
+};
+
 function must<T>(el: T | null | undefined): T {
 	if (el === null || el === undefined) {
 		throw new Error("expected the element to exist");
@@ -73,5 +91,29 @@ describe("Epic 7 — Grid never re-renders on a gesture", () => {
 		fireEvent.keyDown(must(cell(container, 1, 1)), { key: "ArrowRight", shiftKey: true });
 		fireEvent.keyDown(must(cell(container, 1, 2)), { key: "ArrowDown", shiftKey: true });
 		expect(renders).toBe(initial); // building a 2×2 band → Grid 0
+	});
+
+	test("formatted columns (currency + percent) keep Grid at 0 across every gesture (Epic 9)", () => {
+		let renders = 0;
+		function Probed(props: GridProps) {
+			renders++;
+			return <Grid {...props} />;
+		}
+		const { container } = render(
+			<Probed model={formattedModel} mode="bulk" onEdit={() => {}} onBulkEdit={() => {}} />,
+		);
+		const initial = renders;
+
+		fireEvent.keyDown(must(cell(container, 1, 1)), { key: "ArrowRight" }); // move onto the % cell
+		fireEvent.keyDown(must(cell(container, 1, 2)), { key: "ArrowDown" });
+		expect(renders).toBe(initial); // moves across formatted cells → Grid 0
+
+		fireEvent.keyDown(must(cell(container, 2, 2)), { key: "Enter" }); // open editor on a % cell
+		fireEvent.change(must(editor(container)), { target: { value: "0.2" } }); // keystroke
+		fireEvent.keyDown(must(editor(container)), { key: "Enter" }); // commit + move
+		expect(renders).toBe(initial); // open + keystroke + commit on a formatted cell → Grid 0
+
+		fireEvent.keyDown(must(cell(container, 1, 1)), { key: "ArrowRight", shiftKey: true }); // extend
+		expect(renders).toBe(initial); // shift-extend over formatted cells → Grid 0
 	});
 });
