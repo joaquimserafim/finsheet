@@ -122,9 +122,10 @@ clipboard" true by construction.
   formatter per grid … deferred" limitation. `Grid.tsx`'s `defaultFormat` JSDoc no longer calls
   `Column.format` "deferred" or `defaultFormat` "threaded to every value cell" (now: the base each
   column inherits + can override). No `Single formatter` / `deferred` phrasing left.
-- [ ] **`examples/mixed-format.tsx`** — a `% margin` column + a currency column beside accounting
-  columns, typecheck-verified in CI, plus its row in the examples index / `examples/README.md`
-  (the repo's per-feature convention).
+- [x] **`examples/mixed-format.tsx`** — a `$` revenue + `€` cost + `%` gross-margin column beside a
+  plain accounting units column, each via `Column.format`; JSDoc calls out percent-stores-a-ratio +
+  display-only. Resolves `finsheet` → `src/index.ts` and typechecks (all arms valid). Indexed in
+  `examples/README.md`. Lint + typecheck green.
 - [ ] **Gallery shot + CHANGELOG.** Regenerate one mixed-format shot via `pnpm screenshots`
   (reusing the Epic 8 Chromium stack) into `docs/screenshots/` + `docs/gallery.md`, and add a
   CHANGELOG entry under a new **`[Unreleased]`** section (per-column formatting; additive /

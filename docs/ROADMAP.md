@@ -241,7 +241,7 @@ panel (both verifiers PROCEED).*
 
 **Stage 3 — Docs, example, gallery & changelog**
 - [x] README + `Grid.tsx` JSDoc truthing — "Per-column formats" section + props pointer; deleted the "single formatter" limitation; fixed the stale defaultFormat JSDoc
-- [ ] `examples/mixed-format.tsx` + examples index
+- [x] `examples/mixed-format.tsx` ($/€ currency + % margin + accounting) + examples index — typechecks
 - [ ] mixed-format gallery shot + `[Unreleased]` CHANGELOG entry — **no version bump** (Epic 12)
 
 **Founder gates — RESOLVED (2026-07-12, all as recommended):** percent stores the **ratio** (`0.125`); field
